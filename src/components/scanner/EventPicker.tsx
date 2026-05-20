@@ -1,4 +1,9 @@
-import { useAuth } from "@/auth/AuthContext"
+import { useAppDispatch, useAppSelector } from "@/app/hooks"
+import {
+  selectAssignments,
+  selectSelectedEventId,
+  setSelectedEventId,
+} from "@/features/auth/authSlice"
 import {
   Select,
   SelectContent,
@@ -6,16 +11,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { MOCK_EVENTS } from "@/mocks/events"
 
 export function EventPicker() {
-  const { user, selectedEventId, setSelectedEventId } = useAuth()
-  const options = MOCK_EVENTS.filter((e) => user?.assignedEventIds.includes(e.id))
+  const dispatch = useAppDispatch()
+  const assignments = useAppSelector(selectAssignments)
+  const selectedEventId = useAppSelector(selectSelectedEventId)
 
-  if (options.length === 0) return null
+  if (assignments.length === 0) return null
 
   return (
-    <Select value={selectedEventId ?? undefined} onValueChange={setSelectedEventId}>
+    <Select
+      value={selectedEventId != null ? String(selectedEventId) : undefined}
+      onValueChange={(v) => dispatch(setSelectedEventId(Number.parseInt(v, 10)))}
+    >
       <SelectTrigger
         aria-label="Select event"
         size="default"
@@ -24,9 +32,9 @@ export function EventPicker() {
         <SelectValue placeholder="Event" />
       </SelectTrigger>
       <SelectContent>
-        {options.map((e) => (
-          <SelectItem key={e.id} value={e.id}>
-            <span className="truncate">{e.name}</span>
+        {assignments.map((a) => (
+          <SelectItem key={a.id} value={String(a.event_id)}>
+            <span className="truncate">{a.event?.title ?? `Event #${a.event_id}`}</span>
           </SelectItem>
         ))}
       </SelectContent>

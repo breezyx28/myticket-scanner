@@ -1,43 +1,81 @@
+import { zodResolver } from "@hookform/resolvers/zod"
 import { AlertCircle, ArrowRight, ShieldOff } from "lucide-react"
 import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { Link, Navigate, useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
-import { useAuth } from "@/auth/AuthContext"
+import { useAppDispatch, useAppSelector } from "@/app/hooks"
+import { useLoginMutation } from "@/features/auth/authApi"
+import { handleLoginResponse } from "@/features/auth/bootstrapSession"
+import { selectIsAuthenticated } from "@/features/auth/authSlice"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AuthLayout } from "@/layouts/AuthLayout"
+import { parseApiError } from "@/shared/lib/parseApiError"
+import { loginFormSchema, type LoginFormValues } from "@/shared/schemas/auth"
 import { cn } from "@/lib/utils"
 
 const inputClass =
   "rounded-2xl border-ink-10 bg-white text-ink shadow-card-sm placeholder:text-ink-40 focus-visible:border-ink/25 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-ink/15"
 
-/** Pre-filled for mock / local dev — matches README demo scanner account */
-const DEMO_SCANNER_EMAIL = "scanner@demo.com"
-const DEMO_SCANNER_PASSWORD = "scanner123"
+const DEMO_EMAIL = import.meta.env.DEV ? "scanner@demo.com" : ""
+const DEMO_PASSWORD = import.meta.env.DEV ? "" : ""
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { login, user } = useAuth()
-  const [email, setEmail] = useState(DEMO_SCANNER_EMAIL)
-  const [password, setPassword] = useState(DEMO_SCANNER_PASSWORD)
-  const [error, setError] = useState<"invalid" | "not_scanner" | null>(null)
+  const dispatch = useAppDispatch()
+  const isAuthenticated = useAppSelector(selectIsAuthenticated)
+  const [login, { isLoading }] = useLoginMutation()
+  const [accessDenied, setAccessDenied] = useState(false)
 
-  if (user) return <Navigate to="/" replace />
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      email: DEMO_EMAIL,
+      password: DEMO_PASSWORD,
+    },
+  })
 
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    const res = login(email, password)
-    if (res.ok) {
+  if (isAuthenticated) return <Navigate to="/" replace />
+
+  const onSubmit = handleSubmit(async (values) => {
+    setAccessDenied(false)
+    try {
+      const response = await login({
+        email: values.email.trim().toLowerCase(),
+        password: values.password,
+      }).unwrap()
+
+      const boot = await handleLoginResponse(dispatch, response)
+      if (!boot.ok) {
+        if (boot.twoFactor) {
+          toast.error(boot.message)
+        } else if (boot.message.toLowerCase().includes("permission") || boot.message.toLowerCase().includes("scanner")) {
+          setAccessDenied(true)
+        } else {
+          toast.error(boot.message)
+        }
+        return
+      }
+
       navigate("/", { replace: true })
-      return
+    } catch (error) {
+      const parsed = parseApiError(error)
+      if (parsed.status === 403) {
+        setAccessDenied(true)
+        return
+      }
+      toast.error(parsed.message)
     }
-    if (res.reason === "not_scanner") setError("not_scanner")
-    else setError("invalid")
-  }
+  })
 
   return (
     <AuthLayout>
@@ -50,13 +88,12 @@ export function LoginPage() {
             Sign in
           </CardTitle>
           <CardDescription className="max-w-[34ch] text-base leading-relaxed text-ink-60">
-            Use the email and password from your organizer. Google sign-in is not available on this
-            app.
+            Use your scanner account credentials. Sign-in connects to the production API.
           </CardDescription>
         </CardHeader>
         <CardContent className="px-6 pb-8 pt-2 sm:px-8 sm:pb-10">
-          <form className="flex flex-col gap-6" onSubmit={onSubmit}>
-            {error === "not_scanner" ? (
+          <form className="flex flex-col gap-6" onSubmit={onSubmit} noValidate>
+            {accessDenied ? (
               <Alert
                 variant="destructive"
                 className={cn(
@@ -67,23 +104,7 @@ export function LoginPage() {
                 <ShieldOff className="size-4" strokeWidth={2} aria-hidden />
                 <AlertTitle className="text-red-950">Access denied</AlertTitle>
                 <AlertDescription className="text-red-800/90">
-                  This app is for scanner accounts only. Use organizer credentials in the organizer
-                  dashboard instead.
-                </AlertDescription>
-              </Alert>
-            ) : null}
-            {error === "invalid" ? (
-              <Alert
-                variant="destructive"
-                className={cn(
-                  "border-red-200/80 bg-red-50 text-red-900",
-                  "[&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-red-600",
-                )}
-              >
-                <AlertCircle className="size-4" strokeWidth={2} aria-hidden />
-                <AlertTitle className="text-red-950">Sign in failed</AlertTitle>
-                <AlertDescription className="text-red-800/90">
-                  Check your email and password, then try again.
+                  This app is for scanner accounts only. Contact your organizer if you need access.
                 </AlertDescription>
               </Alert>
             ) : null}
@@ -93,15 +114,15 @@ export function LoginPage() {
               </Label>
               <Input
                 id="email"
-                name="email"
                 type="email"
                 autoComplete="username"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 className={inputClass}
                 placeholder="you@venue.com"
+                {...register("email")}
               />
+              {errors.email ? (
+                <p className="text-xs text-red-600">{errors.email.message}</p>
+              ) : null}
             </div>
             <div className="space-y-2">
               <div className="flex min-h-[44px] items-end justify-between gap-3">
@@ -117,23 +138,39 @@ export function LoginPage() {
               </div>
               <Input
                 id="password"
-                name="password"
                 type="password"
                 autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 className={inputClass}
                 placeholder="••••••••"
+                {...register("password")}
               />
+              {errors.password ? (
+                <p className="text-xs text-red-600">{errors.password.message}</p>
+              ) : null}
             </div>
-            <Button type="submit" size="lg" className="mt-1 w-full gap-2.5 shadow-card-sm">
-              Continue to scanner
-              <ArrowRight className="size-5 shrink-0" strokeWidth={2} aria-hidden />
+            <Button type="submit" size="lg" className="mt-1 w-full gap-2.5 shadow-card-sm" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <span className="size-5 animate-spin rounded-full border-2 border-ink border-t-transparent" />
+                  Signing in…
+                </>
+              ) : (
+                <>
+                  Continue to scanner
+                  <ArrowRight className="size-5 shrink-0" strokeWidth={2} aria-hidden />
+                </>
+              )}
             </Button>
-            <p className="text-center text-xs leading-relaxed text-ink-40">
-              Need credentials? Ask your event organizer — scanners cannot self-register.
-            </p>
+            {import.meta.env.DEV ? (
+              <p className="flex items-start gap-2 text-center text-xs leading-relaxed text-ink-40">
+                <AlertCircle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                Dev mode: use real scanner API credentials (demo prefill removed unless set in form).
+              </p>
+            ) : (
+              <p className="text-center text-xs leading-relaxed text-ink-40">
+                Need credentials? Ask your event organizer — scanners cannot self-register.
+              </p>
+            )}
           </form>
         </CardContent>
       </Card>

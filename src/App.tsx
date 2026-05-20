@@ -1,14 +1,15 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom"
 
-import { useAuth } from "@/auth/AuthContext"
+import { useAppSelector } from "@/app/hooks"
+import { selectIsAuthenticated } from "@/features/auth/authSlice"
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage"
 import { LoginPage } from "@/pages/LoginPage"
 import { ResetPasswordPage } from "@/pages/ResetPasswordPage"
 import { ScannerPage } from "@/pages/ScannerPage"
 
 function RequireAuth() {
-  const { user } = useAuth()
-  if (!user) return <Navigate to="/login" replace />
+  const isAuthenticated = useAppSelector(selectIsAuthenticated)
+  if (!isAuthenticated) return <Navigate to="/login" replace />
   return <Outlet />
 }
 

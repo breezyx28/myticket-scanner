@@ -10,17 +10,20 @@ import { createRoot } from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
 import { Toaster } from "sonner"
 
-import { AuthProvider } from "@/auth/AuthContext"
+import { AppBootstrap } from "@/app/AppBootstrap"
+import { AppStoreProvider } from "@/app/provider"
 import App from "./App.tsx"
 import "./index.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AuthProvider>
+    <AppStoreProvider>
       <BrowserRouter>
-        <App />
-        <Toaster richColors position="top-center" closeButton />
+        <AppBootstrap>
+          <App />
+          <Toaster richColors position="top-center" closeButton />
+        </AppBootstrap>
       </BrowserRouter>
-    </AuthProvider>
+    </AppStoreProvider>
   </StrictMode>,
 )

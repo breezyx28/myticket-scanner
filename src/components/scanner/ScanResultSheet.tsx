@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import type { ScanResultDetail } from "@/mocks/types"
+import type { ScanResultDetail } from "@/features/scan/types"
 import { cn } from "@/lib/utils"
 
 const DISMISS_MS = 3200

@@ -1,20 +1,32 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { toast } from "sonner"
 
-import { useAuth } from "@/auth/AuthContext"
+import { useAppSelector } from "@/app/hooks"
 import { EventPicker } from "@/components/scanner/EventPicker"
 import { ManualEntryDialog } from "@/components/scanner/ManualEntryDialog"
 import { ScanResultSheet } from "@/components/scanner/ScanResultSheet"
 import { ScannerViewfinder } from "@/components/scanner/ScannerViewfinder"
 import { SimulateScanDialog } from "@/components/scanner/SimulateScanDialog"
 import { Button } from "@/components/ui/button"
+import {
+  selectDeviceId,
+  selectSelectedAssignment,
+  selectSelectedEventId,
+} from "@/features/auth/authSlice"
+import { useCreateScanMutation } from "@/features/scanner/scannerApi"
+import { mapScanLogToResult } from "@/features/scan/mapScanResult"
+import { parseTicketCode } from "@/features/scan/parseTicketCode"
+import type { ScanResultDetail } from "@/features/scan/types"
 import { ScannerLayout } from "@/layouts/ScannerLayout"
-import { validateScan } from "@/mocks/validateScan"
-import type { ScanResultDetail } from "@/mocks/types"
+import { parseApiError } from "@/shared/lib/parseApiError"
 import { cn } from "@/lib/utils"
 
 export function ScannerPage() {
-  const { selectedEventId, user, setSelectedEventId } = useAuth()
+  const selectedEventId = useAppSelector(selectSelectedEventId)
+  const deviceId = useAppSelector(selectDeviceId)
+  const assignment = useAppSelector(selectSelectedAssignment)
+  const [createScan] = useCreateScanMutation()
+
   const [result, setResult] = useState<ScanResultDetail | null>(null)
   const [loading, setLoading] = useState(false)
   const [camError, setCamError] = useState<string | null>(null)
@@ -22,37 +34,61 @@ export function ScannerPage() {
   const lastRaw = useRef<string>("")
   const lastAt = useRef(0)
 
-  useEffect(() => {
-    if (user && !selectedEventId && user.assignedEventIds[0]) {
-      setSelectedEventId(user.assignedEventIds[0])
-    }
-  }, [user, selectedEventId, setSelectedEventId])
-
   const paused = loading || Boolean(result)
 
   const handlePayload = useCallback(
     async (raw: string) => {
-      if (!selectedEventId) {
+      if (selectedEventId == null) {
         toast.error("Select an event first.")
         return
       }
+      if (deviceId == null) {
+        toast.error("Device not registered. Sign in again.")
+        return
+      }
+
+      const parsed = parseTicketCode(raw)
+      if (!parsed.ticketCode) {
+        toast.error("Invalid QR — no ticket code found.")
+        return
+      }
+
+      if (parsed.eventId != null && parsed.eventId !== selectedEventId) {
+        toast.error("This ticket is for a different event.")
+        return
+      }
+
       const now = Date.now()
       if (raw === lastRaw.current && now - lastAt.current < 1800) return
       lastRaw.current = raw
       lastAt.current = now
       if (busy.current) return
+
       busy.current = true
       setLoading(true)
       setResult(null)
+
       try {
-        const detail = await validateScan(raw, selectedEventId)
-        setResult(detail)
+        const log = await createScan({
+          event_id: selectedEventId,
+          ticket_code: parsed.ticketCode,
+          device_id: deviceId,
+          signature: parsed.signature,
+        }).unwrap()
+
+        setResult(mapScanLogToResult(log, assignment))
+      } catch (error) {
+        const apiErr = parseApiError(error)
+        setResult({
+          kind: "failed",
+          message: apiErr.message,
+        })
       } finally {
         setLoading(false)
         busy.current = false
       }
     },
-    [selectedEventId],
+    [assignment, createScan, deviceId, selectedEventId],
   )
 
   const dismiss = useCallback(() => {

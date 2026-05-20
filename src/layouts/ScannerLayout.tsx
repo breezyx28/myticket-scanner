@@ -1,9 +1,17 @@
 import { LogOut, Ticket } from "lucide-react"
 import { Link } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
-import { useAuth } from "@/auth/AuthContext"
+import { useAppDispatch, useAppSelector } from "@/app/hooks"
+import { useLogoutMutation } from "@/features/auth/authApi"
+import {
+  clearAuth,
+  selectSelectedAssignment,
+  selectUser,
+} from "@/features/auth/authSlice"
 import { Button } from "@/components/ui/button"
-import { MOCK_EVENTS } from "@/mocks/events"
+import { parseApiError } from "@/shared/lib/parseApiError"
 import { cn } from "@/lib/utils"
 
 export function ScannerLayout({
@@ -13,8 +21,33 @@ export function ScannerLayout({
   toolbar?: React.ReactNode
   children: React.ReactNode
 }) {
-  const { user, logout, selectedEventId } = useAuth()
-  const ev = MOCK_EVENTS.find((e) => e.id === selectedEventId)
+  const dispatch = useAppDispatch()
+  const navigate = useNavigate()
+  const user = useAppSelector(selectUser)
+  const assignment = useAppSelector(selectSelectedAssignment)
+  const [logoutApi] = useLogoutMutation()
+
+  const entryMode = assignment?.event?.entry_mode
+  const entryModeLabel =
+    entryMode === "one_time"
+      ? { short: "Once", long: "One-time entry" }
+      : entryMode === "multi_scan"
+        ? { short: "Multi", long: "Multi-scan / re-entry" }
+        : null
+
+  const handleLogout = async () => {
+    try {
+      await logoutApi().unwrap()
+    } catch (error) {
+      const parsed = parseApiError(error)
+      if (parsed.status !== 401) {
+        toast.error(parsed.message)
+      }
+    } finally {
+      dispatch(clearAuth())
+      navigate("/login", { replace: true })
+    }
+  }
 
   return (
     <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-ink text-white">
@@ -36,17 +69,17 @@ export function ScannerLayout({
             <span className="sm:hidden">Active</span>
             <span className="hidden sm:inline">Signed in</span>
           </p>
-          <p className="truncate text-xs font-semibold sm:text-sm">{user?.email}</p>
+          <p className="truncate text-xs font-semibold sm:text-sm">
+            {user?.email ?? user?.full_name ?? "Scanner"}
+          </p>
         </div>
-        {ev ? (
+        {entryModeLabel ? (
           <span
             className="max-w-[min(30vw,7rem)] truncate rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium text-white/80 sm:max-w-[40%] sm:px-3 sm:py-1.5 sm:text-xs"
-            title={ev.scanMode === "one_time" ? "One-time entry" : "Multi-scan / re-entry"}
+            title={entryModeLabel.long}
           >
-            <span className="sm:hidden">{ev.scanMode === "one_time" ? "Once" : "Multi"}</span>
-            <span className="hidden sm:inline">
-              {ev.scanMode === "one_time" ? "One-time entry" : "Multi-scan / re-entry"}
-            </span>
+            <span className="sm:hidden">{entryModeLabel.short}</span>
+            <span className="hidden sm:inline">{entryModeLabel.long}</span>
           </span>
         ) : null}
         <div className="flex min-w-0 shrink items-center gap-1.5 sm:gap-2">{toolbar}</div>
@@ -55,7 +88,7 @@ export function ScannerLayout({
           variant="ghost"
           size="icon"
           className="size-11 shrink-0 text-white hover:bg-white/10 sm:size-12"
-          onClick={() => logout()}
+          onClick={() => void handleLogout()}
           aria-label="Log out"
         >
           <LogOut className="size-5" />

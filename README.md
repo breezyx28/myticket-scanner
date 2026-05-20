@@ -1,60 +1,58 @@
-# MyTicket Scanner (frontend mockup)
+# MyTicket Scanner
 
-Minimal scanner web app: sign-in, event selection, QR camera scanning (with simulate / manual entry), and in-memory ticket validation aligned with `myticket_scanner_flow.md` and the MyTicket design tokens.
+Gate scanner web app: sign-in against the production Scanner API, event selection from assignments, QR camera scanning (with simulate / manual entry), and live ticket validation via `POST /scans`.
 
 ## Run locally
 
 ```bash
 npm install
+cp .env.example .env   # optional — defaults to production API URL
 npm run dev
 ```
 
 Open the printed local URL (default `http://localhost:5173`).
 
-## Demo accounts
+## API configuration
 
-| Email | Password | Notes |
-| --- | --- | --- |
-| `scanner@demo.com` | `scanner123` | Scanner account — use for the full flow |
-| `organizer@demo.com` | `organizer123` | **Not** a scanner — shows “access denied” |
+Set the Scanner API base URL (see `SCANNER_API_ENDPOINTS.md`):
 
-## Password reset (mock)
+```env
+VITE_API_BASE_URL=https://myticket-api.kat-jr.com/api/v1/scanner
+```
 
-1. From login, use **Forgot password?**
-2. Submit any email, then open **Open demo reset link**
-3. Or go directly to `/reset-password?token=demo`  
-   Completing the form only shows a success toast — it does **not** change the demo passwords above.
+Default is production if the variable is unset (`src/config/env.ts`).
 
-## Sample QR strings (paste into “Manual entry” or use **Simulate scan**)
+## Sign-in
 
-Payload format: `myticket://t/{ticketId}?s={secret}&e={eventId}`
+Use credentials for an active **scanner** account on the MyTicket API. On success the app:
 
-- **Valid VIP (Summer Jazz, one-time):**  
-  `myticket://t/tck-001?s=alpha&e=evt-summer-jazz`  
-  Select event **Summer Jazz Night** before scanning.
+1. Stores the bearer token in `sessionStorage`
+2. Calls `GET /me`, registers a device if needed, loads `GET /assignments`
+3. Redirects to the scanner home route
 
-- **Already used (Summer Jazz):**  
-  `myticket://t/tck-002?s=bravo&e=evt-summer-jazz`
+Two-factor login challenges are detected but not yet implemented in the UI (toast only).
 
-- **Multi-scan (Indie Open Air):**  
-  `myticket://t/tck-003?s=charlie&e=evt-indie-fest`  
-  Select **Indie Open Air** — can be “scanned” repeatedly; ticket stays active.
+## Scanning
 
-- **Expired ticket:**  
-  `myticket://t/tck-expired?s=delta&e=evt-indie-fest`
+1. Select an assigned event from the header dropdown.
+2. Scan a QR code or use **Manual entry** / **Simulate scan** with a `ticket_code` (e.g. `TIC-…`) or JSON `{"ticket_code":"TIC-…"}`.
+3. Results come from `POST /scans` and map to success / already used / invalid / expired modals.
 
-- **Wrong secret:**  
-  `myticket://t/tck-001?s=wrong&e=evt-summer-jazz`
+## Password reset (no API)
 
-Plain ticket id (secret not sent): `tck-001` — still validates when the correct event is selected.
+Forgot/reset password screens are **UI-only** — there is no scanner API for password recovery in the MVP. They remain for layout reference.
+
+## Mock data (`src/mocks/`)
+
+Legacy mock users, events, and in-memory `validateScan` are kept for reference only and are **not** imported by the production app path.
 
 ## Scripts
 
-- `npm run dev` — Vite dev server  
-- `npm run build` — Typecheck + production build  
-- `npm run lint` — ESLint  
-- `npm run preview` — Preview production build  
+- `npm run dev` — Vite dev server
+- `npm run build` — Typecheck + production build
+- `npm run lint` — ESLint
+- `npm run preview` — Preview production build
 
 ## Stack
 
-Vite 7, React 19, TypeScript, Tailwind CSS v4, Radix primitives (dialog, select, label, slot), `html5-qrcode`, Fontsource (Plus Jakarta Sans, Space Grotesk), React Router 7.
+Vite 7, React 19, TypeScript, Redux Toolkit + RTK Query, Zod, react-hook-form, Tailwind CSS v4, Radix primitives, `html5-qrcode`, Fontsource, React Router 7.
