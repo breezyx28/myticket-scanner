@@ -5,7 +5,6 @@ import { toast } from "sonner"
 import { useAppSelector } from "@/app/hooks"
 import { EventPicker } from "@/components/scanner/EventPicker"
 import { ManualEntryDialog } from "@/components/scanner/ManualEntryDialog"
-import { ScanDebugDialog, type ScanDebugPayload } from "@/components/scanner/ScanDebugDialog"
 import { ScanResultSheet } from "@/components/scanner/ScanResultSheet"
 import { ScannerViewfinder } from "@/components/scanner/ScannerViewfinder"
 import { Button } from "@/components/ui/button"
@@ -16,7 +15,7 @@ import {
 } from "@/features/auth/authSlice"
 import { useCreateScanMutation } from "@/features/scanner/scannerApi"
 import { mapScanLogToResult } from "@/features/scan/mapScanResult"
-import { parseTicketCode, type ParsedTicketCode } from "@/features/scan/parseTicketCode"
+import { parseTicketCode } from "@/features/scan/parseTicketCode"
 import type { ScanResultDetail } from "@/features/scan/types"
 import { ScannerLayout } from "@/layouts/ScannerLayout"
 import { parseApiError } from "@/shared/lib/parseApiError"
@@ -32,32 +31,9 @@ export function ScannerPage() {
   const [loading, setLoading] = useState(false)
   const [camError, setCamError] = useState<string | null>(null)
   const [cameraOn, setCameraOn] = useState(true)
-  const [scanDebug, setScanDebug] = useState<ScanDebugPayload | null>(null)
 
   /** Held from first decode until result sheet is dismissed — prevents repeat API calls. */
   const scanSessionLocked = useRef(false)
-
-  const openScanDebug = useCallback(
-    (
-      raw: string,
-      parsed: ParsedTicketCode,
-      errorKind: ScanDebugPayload["errorKind"],
-      errorMessage: string,
-      apiResult?: string,
-    ) => {
-      setScanDebug({
-        raw,
-        parsed,
-        errorKind,
-        errorMessage,
-        scannedAt: new Date().toISOString(),
-        selectedEventId,
-        deviceId,
-        apiResult,
-      })
-    },
-    [deviceId, selectedEventId],
-  )
 
   const scannerPaused = loading || Boolean(result)
   const viewfinderActive = cameraOn && !camError
@@ -78,18 +54,11 @@ export function ScannerPage() {
       const parsed = parseTicketCode(raw)
       if (!parsed.ticketCode) {
         toast.error("Invalid QR — no ticket code found.")
-        openScanDebug(raw, parsed, "parse", "No ticket_code could be parsed from the QR payload.")
         return
       }
 
       if (parsed.eventId != null && parsed.eventId !== selectedEventId) {
         toast.error("This ticket is for a different event.")
-        openScanDebug(
-          raw,
-          parsed,
-          "wrong_event",
-          `Payload event_id ${parsed.eventId} does not match selected event ${selectedEventId}.`,
-        )
         return
       }
 
@@ -105,33 +74,18 @@ export function ScannerPage() {
           signature: parsed.signature,
         }).unwrap()
 
-        const detail = mapScanLogToResult(log, assignment)
-        setResult(detail)
-        if (detail.kind !== "success") {
-          const detailMessage =
-            detail.kind === "used"
-              ? `Already used — ${detail.holderName} (${detail.eventName})`
-              : detail.message
-          openScanDebug(
-            raw,
-            parsed,
-            "scan_result_failed",
-            detailMessage,
-            JSON.stringify(log, null, 2),
-          )
-        }
+        setResult(mapScanLogToResult(log, assignment))
       } catch (error) {
         const apiErr = parseApiError(error)
         setResult({
           kind: "failed",
           message: apiErr.message,
         })
-        openScanDebug(raw, parsed, "api", apiErr.message)
       } finally {
         setLoading(false)
       }
     },
-    [assignment, createScan, deviceId, openScanDebug, selectedEventId],
+    [assignment, createScan, deviceId, selectedEventId],
   )
 
   const dismiss = useCallback(() => {
@@ -268,7 +222,6 @@ export function ScannerPage() {
       </div>
 
       <ScanResultSheet result={result} loading={loading} onDismiss={dismiss} />
-      <ScanDebugDialog payload={scanDebug} onClose={() => setScanDebug(null)} />
     </ScannerLayout>
   )
 }
