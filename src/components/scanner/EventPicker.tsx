@@ -4,6 +4,7 @@ import {
   selectSelectedEventId,
   setSelectedEventId,
 } from "@/features/auth/authSlice"
+import { formatAssignmentLabel } from "@/features/scanner/formatAssignmentLabel"
 import {
   Select,
   SelectContent,
@@ -19,6 +20,11 @@ export function EventPicker() {
 
   if (assignments.length === 0) return null
 
+  const selectedAssignment = assignments.find((a) => a.event_id === selectedEventId)
+  const selectedLabel = selectedAssignment
+    ? formatAssignmentLabel(selectedAssignment)
+    : undefined
+
   return (
     <Select
       value={selectedEventId != null ? String(selectedEventId) : undefined}
@@ -29,12 +35,12 @@ export function EventPicker() {
         size="default"
         className="h-11 w-full min-w-0 max-w-full border-white/20 bg-white/10 text-left text-sm text-white data-placeholder:text-white/50 [&_svg]:shrink-0 [&_svg]:text-white/70"
       >
-        <SelectValue placeholder="Event" />
+        <SelectValue placeholder="Event">{selectedLabel}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         {assignments.map((a) => (
           <SelectItem key={a.id} value={String(a.event_id)}>
-            <span className="truncate">{a.event?.title ?? `Event #${a.event_id}`}</span>
+            <span className="truncate">{formatAssignmentLabel(a)}</span>
           </SelectItem>
         ))}
       </SelectContent>

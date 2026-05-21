@@ -39,19 +39,19 @@ export function ManualEntryDialog({ onSubmitPayload, triggerClassName }: ManualE
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Enter ticket reference</DialogTitle>
+          <DialogTitle>Enter ticket code</DialogTitle>
           <DialogDescription>
-            Paste the full QR string, JSON payload, or a plain ticket id (secret not checked if
-            omitted — matches demo behavior).
+            Paste a ticket code (e.g. TIC-…) or the full QR JSON payload. Validation uses the live
+            scanner API for the selected event.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
-          <Label htmlFor="manual">Payload</Label>
+          <Label htmlFor="manual">Ticket code or payload</Label>
           <Input
             id="manual"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder="tck-001"
+            placeholder='TIC-… or {"ticket_code":"TIC-…"}'
             autoComplete="off"
           />
         </div>

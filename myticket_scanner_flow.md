@@ -16,14 +16,14 @@ Current implementation includes:
 - Session-based login/logout via Scanner API (`POST /auth/login`, `POST /auth/logout`).
 - RTK Query client with Zod-validated responses (`src/shared/api/baseApi.ts`).
 - Bootstrap on load: `GET /me` → `POST /devices/register` (if needed) → `GET /assignments`.
-- Camera scanning via `html5-qrcode`; manual / simulate entry uses `ticket_code` payloads.
+- Camera scanning via `html5-qrcode`; manual entry uses `ticket_code` payloads.
 - Live scan validation via `POST /scans` with result mapping to UI modals.
 - Event selection from API assignments (`event_id`, `entry_mode` badge).
 
 Not implemented yet (MVP follow-ups):
 - 2FA login challenge UI.
 - Offline manifest, `POST /scans/sync`, device heartbeat.
-- Forgot/reset password (scanner API) — pages are mock UI only.
+- Password reset (not in scanner API — removed from app routes).
 
 ---
 
@@ -33,9 +33,7 @@ Defined in `src/App.tsx`:
 
 | Route | Access | Screen | Notes |
 |---|---|---|---|
-| `/login` | Public | `LoginPage` | Prefilled demo credentials for quick entry |
-| `/forgot-password` | Public | `ForgotPasswordPage` | Mock-only flow |
-| `/reset-password` | Public | `ResetPasswordPage` | Requires `?token=demo` |
+| `/login` | Public | `LoginPage` | Live API login |
 | `/` | Protected | `ScannerPage` | Main scanner runtime |
 | `*` | Any | Redirect | Redirects to `/` |
 
@@ -48,40 +46,27 @@ Guard behavior:
 
 ### 3.1 Session model
 
-Stored in `sessionStorage` key:
-- `myticket-scanner-session-v1`
+Redux `authSlice` + `sessionStorage` key `myticket-scanner-session-v1`:
 
-Session payload:
 ```ts
 {
-  email: string
-  selectedEventId: string
+  token: string
+  userId: number
+  email: string | null
+  fullName: string | null
+  deviceId: number | null
+  selectedEventId: number | null
 }
 ```
 
 ### 3.2 Login behavior
 
-`AuthContext.login(email, password)`:
-- Looks up user in local `MOCK_USERS`.
-- Validates credentials.
-- Sets active user + selected default event.
-- Persists session payload.
+`POST /auth/login` → `bootstrapScannerSession`: `GET /me` → `POST /devices/register` (if needed) → `GET /assignments`.  
+403 / non-scanner messages surface as access denied on `LoginPage`.
 
-Current login result type:
-```ts
-type LoginFailureReason = "invalid_credentials" | "not_scanner"
-type LoginResult = { ok: true } | { ok: false; reason: LoginFailureReason }
-```
+### 3.3 Password reset
 
-### 3.3 Important implementation note
-
-UI supports an access-denied state for non-scanner accounts, but current `AuthContext.login()` does not enforce `isScanner` role rejection yet. This should be fixed before production.
-
-### 3.4 Password reset
-
-Implemented as mock UX only:
-- `/forgot-password`: success message + demo reset link.
-- `/reset-password?token=demo`: form validation + toast, no real password update.
+Not available in the scanner API; routes removed. Users must reset via organizer/main app.
 
 ---
 
@@ -99,15 +84,15 @@ Implemented as mock UX only:
 
 `ScannerPage` accepts scans from:
 1. Camera viewfinder (`ScannerViewfinder`)
-2. Simulated payload dialog (`SimulateScanDialog`)
-3. Manual entry dialog (`ManualEntryDialog`)
+2. Manual entry dialog (`ManualEntryDialog`)
+
+Optional **Camera off** toggle stops the viewfinder without signing out.
 
 ### 4.3 Runtime guards
 
-- Requires selected event before validation.
-- Deduplicates same payload in a `1800ms` window.
-- Uses in-flight lock to prevent concurrent validations.
-- Pauses camera while loading/result modal is open.
+- Requires selected event and registered `device_id`.
+- `scanSessionLocked` from first decode until result sheet dismiss (one API call per hold).
+- Camera paused/stopped while loading or showing result.
 
 ### 4.4 Camera behavior
 
@@ -121,31 +106,14 @@ Implemented as mock UX only:
 
 ---
 
-## 5. Validation Logic (Current Implementation)
+## 5. Validation Logic (Live API)
 
-Validation entrypoint:
-- `validateScan(raw: string, selectedEventId: string): Promise<ScanResultDetail>`
+Entrypoint: `POST /scans` via `useCreateScanMutation` after `parseTicketCode(raw)`.
 
-Processing delay:
-- Random `300–799ms` to simulate network/processing.
+Request: `{ event_id, ticket_code, device_id, signature? }`  
+Response mapped by `mapScanLogToResult` → `success` | `failed` | `used` | `expired`.
 
-Validation checks:
-1. Parse payload.
-2. Ensure ticket exists.
-3. Validate secret when provided.
-4. Validate payload event consistency when provided.
-5. Ensure ticket event equals selected event.
-6. Check ticket/event expiration.
-7. Apply mode-specific behavior.
-
-Result union:
-- `success`
-- `failed`
-- `used`
-- `expired`
-
-Auto-dismiss:
-- Result dialog closes after `3200ms`.
+Auto-dismiss: result dialog closes after `3200ms`.
 
 ---
 
@@ -308,42 +276,18 @@ type ScanResultDetail =
 - Toasts: `sonner`
 - Haptics: `navigator.vibrate` on result state
 
-### 8.6 Legacy mocks (`src/mocks/`)
-Reference-only; not used at runtime. See section 9 for historical seed shapes.
-
 ---
 
-## 9. Legacy Mock Seed Data (reference only)
-
-### Users
-- `scanner@demo.com` / `scanner123` (scanner user)
-- `organizer@demo.com` / `organizer123` (non-scanner mock user)
-
-### Events
-- `evt-summer-jazz` (`one_time`)
-- `evt-indie-fest` (`multi_scan`)
-
-### Tickets
-- Includes active, used, and expired examples:
-  - `tck-001`, `tck-002`, `tck-003`, `tck-expired`
-
----
-
-## 10. Behavior Constants / Variables
+## 9. Behavior Constants / Variables
 
 - `STORAGE_KEY = "myticket-scanner-session-v1"`
-- `DEMO_SCANNER_EMAIL = "scanner@demo.com"`
-- `DEMO_SCANNER_PASSWORD = "scanner123"`
-- Scan dedupe window: `1800ms`
-- Validation delay: `300–799ms`
+- Scan session lock until result dismiss (one API call per QR hold)
 - Result auto-dismiss: `3200ms`
-- Camera fps: `10`
-- Reset token: `demo`
-- Reset password min length: `6`
+- Camera fps: `8` (viewfinder)
 
 ---
 
-## 11. Gaps vs Intended Production Flow
+## 10. Gaps vs Intended Production Flow
 
 1. **2FA login** — API can return `challenge_token`; UI not built yet.
 
@@ -351,14 +295,14 @@ Reference-only; not used at runtime. See section 9 for historical seed shapes.
 
 3. **Device heartbeat** — `POST /devices/{id}/heartbeat` not called while foregrounded.
 
-4. **Password recovery** — Forgot/reset pages are mock-only (no scanner API).
+4. **Password recovery** — Not in scanner API (use main MyTicket app / organizer).
 
 5. **No automatic event context switching**  
    Wrong-event scans fail via API; selected event is not auto-changed from payload.
 
 ---
 
-## 12. Suggested DB-Oriented Entity Starter Set
+## 11. Suggested DB-Oriented Entity Starter Set
 
 For future backend schema design (based on current app data contracts):
 - `users` (scanner role, credentials, active status)

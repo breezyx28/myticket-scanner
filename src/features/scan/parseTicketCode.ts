@@ -6,7 +6,7 @@ export interface ParsedTicketCode {
 
 /**
  * Parses QR / manual payloads into API `ticket_code`.
- * Supports production ticket codes (e.g. TIC-…) and legacy dev formats.
+ * Accepts plain codes (e.g. TIC-…), JSON `{ ticket_code }`, or `myticket://` URIs.
  */
 export function parseTicketCode(raw: string): ParsedTicketCode {
   const t = raw.trim()
@@ -19,14 +19,22 @@ export function parseTicketCode(raw: string): ParsedTicketCode {
         ? j.ticket_code
         : typeof j.ticketCode === "string"
           ? j.ticketCode
-          : typeof j.ticketId === "string"
-            ? j.ticketId
-            : undefined
+          : undefined
     if (code) {
       return {
         ticketCode: code,
-        signature: typeof j.signature === "string" ? j.signature : typeof j.secret === "string" ? j.secret : undefined,
-        eventId: typeof j.event_id === "number" ? j.event_id : typeof j.eventId === "number" ? j.eventId : undefined,
+        signature:
+          typeof j.signature === "string"
+            ? j.signature
+            : typeof j.secret === "string"
+              ? j.secret
+              : undefined,
+        eventId:
+          typeof j.event_id === "number"
+            ? j.event_id
+            : typeof j.eventId === "number"
+              ? j.eventId
+              : undefined,
       }
     }
   } catch {
@@ -50,9 +58,4 @@ export function parseTicketCode(raw: string): ParsedTicketCode {
   }
 
   return {}
-}
-
-export function buildQrPayload(ticketCode: string, secret: string, eventId: number): string {
-  const q = new URLSearchParams({ s: secret, e: String(eventId) })
-  return `myticket://t/${encodeURIComponent(ticketCode)}?${q.toString()}`
 }

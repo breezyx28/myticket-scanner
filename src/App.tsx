@@ -2,9 +2,7 @@ import { Navigate, Outlet, Route, Routes } from "react-router-dom"
 
 import { useAppSelector } from "@/app/hooks"
 import { selectIsAuthenticated } from "@/features/auth/authSlice"
-import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage"
 import { LoginPage } from "@/pages/LoginPage"
-import { ResetPasswordPage } from "@/pages/ResetPasswordPage"
 import { ScannerPage } from "@/pages/ScannerPage"
 
 function RequireAuth() {
@@ -17,8 +15,6 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route element={<RequireAuth />}>
         <Route path="/" element={<ScannerPage />} />
       </Route>
