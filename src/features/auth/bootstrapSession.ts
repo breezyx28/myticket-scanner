@@ -10,6 +10,7 @@ import {
   setBootstrapLoading,
   setCredentials,
   setDeviceId,
+  setScannerAccountId,
 } from "./authSlice"
 
 function defaultDeviceLabel(): string {
@@ -31,6 +32,8 @@ export async function bootstrapScannerSession(
     const me = await dispatch(
       scannerApi.endpoints.getMe.initiate(undefined, { forceRefetch: true }),
     ).unwrap()
+
+    dispatch(setScannerAccountId(me.id))
 
     let deviceId = me.devices?.find((d) => d.is_active !== false)?.id
 

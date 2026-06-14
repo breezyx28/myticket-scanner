@@ -28,7 +28,15 @@ Use credentials for an active **scanner** account. On success the app:
 2. Calls `GET /me`, registers a device if needed, loads `GET /assignments`
 3. Opens the scanner home route
 
-Two-factor login challenges are detected but not yet implemented in the UI (toast only). Password reset is not part of the scanner API — use organizer tools if you need a new password.
+Two-factor login challenges are detected but not yet implemented in the UI (toast only).
+
+## Password reset (3 steps)
+
+1. **Forgot password** (`/forgot-password`) — enter email
+2. **Verify code** (`/reset-password/verify`) — enter 6-digit OTP
+3. **New password** (`/reset-password/new`) — set password → sign in
+
+Codes expire in **15 minutes**. Resend is available on the verify step.
 
 ## Scanning
 
@@ -37,6 +45,19 @@ Two-factor login challenges are detected but not yet implemented in the UI (toas
 3. Results come from `POST /scans` (valid, duplicate, invalid, expired, etc.).
 
 Use **Camera off** to stop the viewfinder; turn it back on when ready to scan again.
+
+## Real-time sync (optional)
+
+When Reverb env vars are set, the scanner subscribes to `private-scanner.{accountId}.scans` for cross-device awareness. **HTTP `POST /scans` remains the source of truth** for scans on this device.
+
+```env
+VITE_REVERB_APP_KEY=…
+VITE_REVERB_HOST=myticket-api.kat-jr.com
+VITE_REVERB_PORT=443
+VITE_REVERB_SCHEME=https
+```
+
+Scans from other devices on the same account show as a toast; the header shows **Live sync on** when connected. Without Reverb config, scanning works as before over HTTP only.
 
 ## Scripts
 
@@ -47,4 +68,4 @@ Use **Camera off** to stop the viewfinder; turn it back on when ready to scan ag
 
 ## Stack
 
-Vite 7, React 19, TypeScript, Redux Toolkit + RTK Query, Zod, react-hook-form, Tailwind CSS v4, Radix primitives, `html5-qrcode`, Fontsource, React Router 7.
+Vite 7, React 19, TypeScript, Redux Toolkit + RTK Query, Zod, react-hook-form, Tailwind CSS v4, Radix primitives, `html5-qrcode`, Laravel Echo + Reverb (optional), Fontsource, React Router 7.

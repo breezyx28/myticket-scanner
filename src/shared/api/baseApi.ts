@@ -31,8 +31,11 @@ export const baseQueryWithReauth: BaseQueryFn<
 
   if (result.error?.status === 401) {
     const url = typeof args === "string" ? args : args.url
-    const isLogin = url.includes("/auth/login")
-    if (!isLogin) {
+    const isPublicAuth =
+      url.includes("/auth/login") ||
+      url.includes("/auth/password/forgot") ||
+      url.includes("/auth/password/reset")
+    if (!isPublicAuth) {
       api.dispatch(clearAuth())
     }
   }

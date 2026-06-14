@@ -5,6 +5,7 @@ import { toast } from "sonner"
 import { useAppSelector } from "@/app/hooks"
 import { EventPicker } from "@/components/scanner/EventPicker"
 import { ManualEntryDialog } from "@/components/scanner/ManualEntryDialog"
+import { RealtimeConnectionBadge } from "@/components/scanner/RealtimeConnectionBadge"
 import { ScanResultSheet } from "@/components/scanner/ScanResultSheet"
 import { ScannerViewfinder } from "@/components/scanner/ScannerViewfinder"
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,8 @@ import {
   selectSelectedEventId,
 } from "@/features/auth/authSlice"
 import { useCreateScanMutation } from "@/features/scanner/scannerApi"
+import { formatRemoteScanToast } from "@/features/realtime/formatRemoteScanToast"
+import { useScannerScanRealtime } from "@/features/realtime/useScannerScanRealtime"
 import { mapScanLogToResult } from "@/features/scan/mapScanResult"
 import { parseTicketCode } from "@/features/scan/parseTicketCode"
 import type { ScanResultDetail } from "@/features/scan/types"
@@ -31,6 +34,12 @@ export function ScannerPage() {
   const [loading, setLoading] = useState(false)
   const [camError, setCamError] = useState<string | null>(null)
   const [cameraOn, setCameraOn] = useState(true)
+
+  const { connectionState } = useScannerScanRealtime({
+    onRemoteScan: (row) => {
+      toast.message(formatRemoteScanToast(row), { duration: 4500 })
+    },
+  })
 
   /** Held from first decode until result sheet is dismissed — prevents repeat API calls. */
   const scanSessionLocked = useRef(false)
@@ -134,8 +143,11 @@ export function ScannerPage() {
   return (
     <ScannerLayout
       toolbar={
-        <div className="flex min-w-0 max-w-[min(100%,12.5rem)] items-center sm:max-w-[240px]">
-          <EventPicker />
+        <div className="flex min-w-0 items-center gap-2">
+          <RealtimeConnectionBadge state={connectionState} className="hidden sm:inline-flex" />
+          <div className="flex min-w-0 max-w-[min(100%,12.5rem)] items-center sm:max-w-[240px]">
+            <EventPicker />
+          </div>
         </div>
       }
     >

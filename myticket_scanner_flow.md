@@ -18,12 +18,12 @@ Current implementation includes:
 - Bootstrap on load: `GET /me` → `POST /devices/register` (if needed) → `GET /assignments`.
 - Camera scanning via `html5-qrcode`; manual entry uses `ticket_code` payloads.
 - Live scan validation via `POST /scans` with result mapping to UI modals.
+- Optional Reverb subscription on `scanner.{accountId}.scans` for cross-device scan toasts (HTTP remains canonical).
 - Event selection from API assignments (`event_id`, `entry_mode` badge).
 
 Not implemented yet (MVP follow-ups):
 - 2FA login challenge UI.
 - Offline manifest, `POST /scans/sync`, device heartbeat.
-- Password reset (not in scanner API — removed from app routes).
 
 ---
 
@@ -33,7 +33,11 @@ Defined in `src/App.tsx`:
 
 | Route | Access | Screen | Notes |
 |---|---|---|---|
-| `/login` | Public | `LoginPage` | Live API login |
+| `/login` | Public | `LoginPage` | Scanner account sign-in |
+| `/forgot-password` | Public | `ForgotPasswordPage` | Step 1 — email |
+| `/reset-password/verify` | Public | `ResetPasswordVerifyPage` | Step 2 — OTP |
+| `/reset-password/new` | Public | `ResetPasswordNewPage` | Step 3 — new password |
+| `/reset-password` | Public | Redirect | Session-aware redirect to verify or forgot |
 | `/` | Protected | `ScannerPage` | Main scanner runtime |
 | `*` | Any | Redirect | Redirects to `/` |
 
@@ -64,9 +68,15 @@ Redux `authSlice` + `sessionStorage` key `myticket-scanner-session-v1`:
 `POST /auth/login` → `bootstrapScannerSession`: `GET /me` → `POST /devices/register` (if needed) → `GET /assignments`.  
 403 / non-scanner messages surface as access denied on `LoginPage`.
 
-### 3.3 Password reset
+### 3.3 Password reset (3 steps)
 
-Not available in the scanner API; routes removed. Users must reset via organizer/main app.
+Session state between steps is stored in `sessionStorage` (`passwordResetSession.ts`).
+
+1. **Forgot password** (`/forgot-password`) — email → `POST /auth/password/forgot`
+2. **Verify code** (`/reset-password/verify`) — 6-digit OTP; resend available
+3. **New password** (`/reset-password/new`) — password + confirm → `POST /auth/password/reset` → redirect to login
+
+Codes expire in **15 minutes**.
 
 ---
 
@@ -114,6 +124,18 @@ Request: `{ event_id, ticket_code, device_id, signature? }`
 Response mapped by `mapScanLogToResult` → `success` | `failed` | `used` | `expired`.
 
 Auto-dismiss: result dialog closes after `3200ms`.
+
+### 5.1 Real-time cross-device sync (optional)
+
+When `VITE_REVERB_APP_KEY` is set:
+
+1. After bootstrap, `scannerAccountId` comes from `GET /me` (`data.id`).
+2. `useScannerScanRealtime` subscribes to Echo private channel `scanner.{accountId}.scans`.
+3. Listens for `.scan.recorded` — same compact row shape as organizer batch items.
+4. Ignores events from this device (`device_id`) or other events (`event_id` ≠ selected).
+5. Shows a toast for scans from other devices; header badge **Live sync on** when connected.
+
+Auth: bearer token to `{API_ORIGIN}/broadcasting/auth`. Without Reverb env, HTTP-only scanning is unchanged.
 
 ---
 

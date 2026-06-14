@@ -81,6 +81,8 @@ export const scanResultSchema = z.enum([
   "wrong_event",
 ])
 
+export type ScanResult = z.infer<typeof scanResultSchema>
+
 export const failureReasonSchema = z.enum([
   "scanner_not_assigned",
   "ticket_not_found",

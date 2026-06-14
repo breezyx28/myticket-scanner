@@ -9,6 +9,12 @@ import {
   refreshTokenResponseSchema,
   type RefreshTokenResponse,
 } from "@/shared/schemas/auth"
+import {
+  forgotPasswordRequestSchema,
+  resetPasswordRequestSchema,
+  type ForgotPasswordRequest,
+  type ResetPasswordRequest,
+} from "@/shared/schemas/passwordReset"
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -30,6 +36,24 @@ export const authApi = baseApi.injectEndpoints({
       transformResponse: (response: unknown) =>
         parseWithSchema(messageResponseSchema, response, "logout"),
     }),
+    forgotPassword: builder.mutation<{ message: string }, ForgotPasswordRequest>({
+      query: (body) => ({
+        url: "/auth/password/forgot",
+        method: "POST",
+        body: forgotPasswordRequestSchema.parse(body),
+      }),
+      transformResponse: (response: unknown) =>
+        parseWithSchema(messageResponseSchema, response, "forgotPassword"),
+    }),
+    resetPassword: builder.mutation<{ message: string }, ResetPasswordRequest>({
+      query: (body) => ({
+        url: "/auth/password/reset",
+        method: "POST",
+        body: resetPasswordRequestSchema.parse(body),
+      }),
+      transformResponse: (response: unknown) =>
+        parseWithSchema(messageResponseSchema, response, "resetPassword"),
+    }),
     refreshToken: builder.mutation<RefreshTokenResponse, void>({
       query: () => ({
         url: "/auth/refresh",
@@ -42,4 +66,10 @@ export const authApi = baseApi.injectEndpoints({
   }),
 })
 
-export const { useLoginMutation, useLogoutMutation, useRefreshTokenMutation } = authApi
+export const {
+  useLoginMutation,
+  useLogoutMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
+  useRefreshTokenMutation,
+} = authApi

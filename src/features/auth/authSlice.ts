@@ -10,6 +10,7 @@ export type AuthStatus = "idle" | "loading" | "authenticated"
 export interface AuthState {
   token: string | null
   user: AuthUser | null
+  scannerAccountId: number | null
   deviceId: number | null
   selectedEventId: number | null
   assignments: Assignment[]
@@ -30,6 +31,7 @@ const initialState: AuthState = {
       }
     : null,
   deviceId: stored?.deviceId ?? null,
+  scannerAccountId: null,
   selectedEventId: stored?.selectedEventId ?? null,
   assignments: [],
   status: stored?.token ? "loading" : "idle",
@@ -66,6 +68,9 @@ export const authSlice = createSlice({
       state.bootstrapError = null
       persistFromState(state)
     },
+    setScannerAccountId(state, action: PayloadAction<number>) {
+      state.scannerAccountId = action.payload
+    },
     setDeviceId(state, action: PayloadAction<number>) {
       state.deviceId = action.payload
       persistFromState(state)
@@ -95,6 +100,7 @@ export const authSlice = createSlice({
     clearAuth(state) {
       state.token = null
       state.user = null
+      state.scannerAccountId = null
       state.deviceId = null
       state.selectedEventId = null
       state.assignments = []
@@ -107,6 +113,7 @@ export const authSlice = createSlice({
 
 export const {
   setCredentials,
+  setScannerAccountId,
   setDeviceId,
   setAssignments,
   setSelectedEventId,
@@ -117,6 +124,7 @@ export const {
 
 export const selectToken = (state: { auth: AuthState }) => state.auth.token
 export const selectUser = (state: { auth: AuthState }) => state.auth.user
+export const selectScannerAccountId = (state: { auth: AuthState }) => state.auth.scannerAccountId
 export const selectDeviceId = (state: { auth: AuthState }) => state.auth.deviceId
 export const selectSelectedEventId = (state: { auth: AuthState }) => state.auth.selectedEventId
 export const selectAssignments = (state: { auth: AuthState }) => state.auth.assignments
