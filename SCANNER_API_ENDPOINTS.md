@@ -436,13 +436,14 @@ Only assignments with `revoked_at = null`.
 | `duplicate` | Already scanned successfully on this event (`one_time` events) |
 | `invalid` | Ticket not found or bad status |
 | `expired` | Outside event window (±4h grace vs `starts_at` / `ends_at`) |
-| `wrong_event` | Ticket belongs to another event or scanner not assigned |
+| `wrong_event` | Ticket belongs to another event, scanner not assigned, or scanner account not owned by the event organizer |
 
 #### `failure_reason` (when not `ok`)
 
 | Value | When |
 |-------|------|
 | `scanner_not_assigned` | No active assignment for this event |
+| `scanner_not_owned_by_event_organizer` | Scanner account's organizer profile does not match the event's organizer |
 | `ticket_not_found` | No ticket with `ticket_code` |
 | `ticket_from_other_event` | Ticket `event_id` mismatch |
 | `before_window` | Too early |

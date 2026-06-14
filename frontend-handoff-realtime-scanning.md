@@ -173,8 +173,17 @@ Both channels are **private**; Echo must send the organizer/scanner Sanctum toke
 
 | Channel pattern | Who may subscribe |
 |-----------------|-------------------|
-| `organizer.event.{eventId}.scans` | Organizer user who owns the event |
-| `scanner.{scannerAccountId}.scans` | Scanner user linked to that active account |
+| `organizer.event.{eventId}.scans` | Organizer user who owns the event (`events.organizer_id` = their active `organizer_profiles` row) |
+| `scanner.{scannerAccountId}.scans` | Scanner user linked to that active account, which must belong to an active organizer profile |
+
+**Organizer isolation:** Live scan sockets are scoped by organizer relation — not a global feed.
+
+- Organizers only authorize for events they own; another organizer cannot subscribe to your event channel even with the event ID.
+- Scanner echo channels are per `scanner_accounts` row; only the linked scanner user may subscribe.
+- Realtime publish is skipped unless `scanner_accounts.organizer_profile_id` matches `events.organizer_id` for the scan.
+- HTTP scan submit rejects cross-organizer scanner/event pairs with `result: wrong_event` and `failure_reason: scanner_not_owned_by_event_organizer`.
+
+Implementation: `App\Domains\Scanners\Support\ScanLiveAuthorization` (used by `routes/channels.php`, `ScanRealtimePublisher`, and `ScannerService`).
 
 ---
 

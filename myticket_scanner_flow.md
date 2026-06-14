@@ -137,6 +137,8 @@ When `VITE_REVERB_APP_KEY` is set:
 
 Auth: bearer token to `{API_ORIGIN}/broadcasting/auth`. Without Reverb env, HTTP-only scanning is unchanged.
 
+**Organizer isolation (backend):** Realtime publish is skipped unless `scanner_accounts.organizer_profile_id` matches `events.organizer_id`. Cross-organizer scan attempts return HTTP `wrong_event` with `failure_reason: scanner_not_owned_by_event_organizer`. Channel auth is scoped per scanner account — only the linked scanner user may subscribe.
+
 ---
 
 ## 6. Supported QR Payload Formats

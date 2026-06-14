@@ -1,17 +1,8 @@
 import type { Assignment } from "@/shared/schemas/scanner"
 import type { ScanLog } from "@/shared/schemas/scanner"
 
+import { scanFailureMessage } from "./scanFailureMessages"
 import type { ScanResultDetail } from "./types"
-
-const FAILURE_MESSAGES: Record<string, string> = {
-  scanner_not_assigned: "Scanner is not assigned to this event.",
-  ticket_not_found: "Ticket not found or invalid.",
-  ticket_from_other_event: "This ticket is for another event.",
-  before_window: "Entry is not open yet for this event.",
-  after_window: "This event has ended.",
-  already_scanned: "This ticket was already scanned.",
-  ticket_status_invalid: "Ticket status is not valid for entry.",
-}
 
 function eventTitle(assignment: Assignment | null | undefined): string {
   return assignment?.event?.title ?? "Event"
@@ -43,15 +34,13 @@ export function mapScanLogToResult(
     case "expired":
       return {
         kind: "expired",
-        message: FAILURE_MESSAGES.after_window,
+        message: scanFailureMessage("after_window"),
       }
     case "wrong_event":
     case "invalid":
       return {
         kind: "failed",
-        message:
-          (log.failure_reason && FAILURE_MESSAGES[log.failure_reason]) ||
-          "Ticket not found or could not be validated.",
+        message: scanFailureMessage(log.failure_reason),
       }
     default:
       return {
