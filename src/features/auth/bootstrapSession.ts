@@ -1,5 +1,7 @@
 import type { AppDispatch } from "@/app/store"
 import { scannerApi } from "@/features/scanner/scannerApi"
+import { defaultDeviceLabel } from "@/features/auth/deviceLabel"
+import i18n from "@/i18n/config"
 import { parseApiError } from "@/shared/lib/parseApiError"
 import type { LoginResponse, LoginSuccess } from "@/shared/schemas/auth"
 import { isLoginSuccess } from "@/shared/schemas/authGuards"
@@ -13,18 +15,13 @@ import {
   setScannerAccountId,
 } from "./authSlice"
 
-function defaultDeviceLabel(): string {
-  const platform =
-    typeof navigator !== "undefined" && "platform" in navigator
-      ? navigator.platform
-      : "Web"
-  return `Scanner ${platform}`.slice(0, 160)
-}
-
 export async function bootstrapScannerSession(
   dispatch: AppDispatch,
   loginResult: LoginSuccess,
-): Promise<{ ok: true } | { ok: false; message: string }> {
+): Promise<
+  | { ok: true }
+  | { ok: false; message: string; accessDenied?: boolean }
+> {
   dispatch(setBootstrapLoading())
   dispatch(setCredentials({ token: loginResult.token, user: loginResult.user }))
 
@@ -59,18 +56,25 @@ export async function bootstrapScannerSession(
   } catch (error) {
     const parsed = parseApiError(error)
     dispatch(clearAuth())
-    return { ok: false, message: parsed.message }
+    return {
+      ok: false,
+      message: parsed.message,
+      accessDenied: parsed.status === 403,
+    }
   }
 }
 
 export function handleLoginResponse(
   dispatch: AppDispatch,
   response: LoginResponse,
-): Promise<{ ok: true } | { ok: false; message: string; twoFactor?: boolean }> {
+): Promise<
+  | { ok: true }
+  | { ok: false; message: string; twoFactor?: boolean; accessDenied?: boolean }
+> {
   if (!isLoginSuccess(response)) {
     return Promise.resolve({
       ok: false,
-      message: "Two-factor authentication is required. This app does not support 2FA yet.",
+      message: i18n.t("auth.twoFactorRequired"),
       twoFactor: true,
     })
   }

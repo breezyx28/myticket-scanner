@@ -1,4 +1,5 @@
 import { LogOut, Ticket } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -21,6 +22,7 @@ export function ScannerLayout({
   toolbar?: React.ReactNode
   children: React.ReactNode
 }) {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const user = useAppSelector(selectUser)
@@ -30,9 +32,9 @@ export function ScannerLayout({
   const entryMode = assignment?.event?.entry_mode
   const entryModeLabel =
     entryMode === "one_time"
-      ? { short: "Once", long: "One-time entry" }
+      ? { short: t("scanner.layout.entryOnceShort"), long: t("scanner.layout.entryOnceLong") }
       : entryMode === "multi_scan"
-        ? { short: "Multi", long: "Multi-scan / re-entry" }
+        ? { short: t("scanner.layout.entryMultiShort"), long: t("scanner.layout.entryMultiLong") }
         : null
 
   const handleLogout = async () => {
@@ -60,17 +62,17 @@ export function ScannerLayout({
         <Link
           to="/"
           className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-lemon sm:size-12 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
-          aria-label="Scanner home"
+          aria-label={t("scanner.layout.homeAria")}
         >
           <Ticket className="size-5 text-ink sm:size-[22px]" strokeWidth={2.2} />
         </Link>
         <div className="min-w-0 flex-1">
           <p className="text-[10px] uppercase tracking-wide text-white/45 sm:text-xs sm:normal-case sm:tracking-normal">
-            <span className="sm:hidden">Active</span>
-            <span className="hidden sm:inline">Signed in</span>
+            <span className="sm:hidden">{t("scanner.layout.active")}</span>
+            <span className="hidden sm:inline">{t("scanner.layout.signedIn")}</span>
           </p>
           <p className="truncate text-xs font-semibold sm:text-sm">
-            {user?.email ?? user?.full_name ?? "Scanner"}
+            {user?.email ?? user?.full_name ?? t("scanner.layout.scannerUser")}
           </p>
         </div>
         {entryModeLabel ? (
@@ -89,7 +91,7 @@ export function ScannerLayout({
           size="icon"
           className="size-11 shrink-0 text-white hover:bg-white/10 sm:size-12"
           onClick={() => void handleLogout()}
-          aria-label="Log out"
+          aria-label={t("scanner.layout.logoutAria")}
         >
           <LogOut className="size-5" />
         </Button>

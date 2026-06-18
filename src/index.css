@@ -84,6 +84,9 @@
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
   }
+  html[dir="rtl"] body {
+    font-family: "Noto Sans Arabic", var(--font-sans), system-ui, sans-serif;
+  }
 }
 
 @utility scrollbar-hide {

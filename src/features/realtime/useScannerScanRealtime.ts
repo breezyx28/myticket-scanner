@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { useAppSelector } from "@/app/hooks"
 import {
@@ -24,6 +25,7 @@ export function useScannerScanRealtime(options: UseScannerScanRealtimeOptions = 
   const scannerAccountId = useAppSelector(selectScannerAccountId)
   const deviceId = useAppSelector(selectDeviceId)
   const selectedEventId = useAppSelector(selectSelectedEventId)
+  const { i18n } = useTranslation()
 
   const onRemoteScanRef = useRef(options.onRemoteScan)
   const [liveState, setLiveState] = useState<RealtimeConnectionState>("idle")
@@ -91,7 +93,7 @@ export function useScannerScanRealtime(options: UseScannerScanRealtimeOptions = 
       pusher.connection.unbind("failed", syncConnectionState)
       setLiveState("idle")
     }
-  }, [canSubscribe, deviceId, scannerAccountId, selectedEventId, token])
+  }, [authStatus, canSubscribe, deviceId, i18n.language, scannerAccountId, selectedEventId, token])
 
   useEffect(() => {
     if (!token) disconnectEcho()

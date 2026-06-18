@@ -1,6 +1,5 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft, ArrowRight, RotateCcw, ShieldCheck } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { RotateCcw, ShieldCheck } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Link, Navigate, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
@@ -8,6 +7,7 @@ import { AuthFormCard } from "@/components/auth/AuthFormCard"
 import { OtpExpiryCountdown } from "@/components/auth/OtpExpiryCountdown"
 import { PasswordResetStepper } from "@/components/auth/PasswordResetStepper"
 import { authOtpInputClass } from "@/components/auth/authFormStyles"
+import { BackArrow, ForwardArrow } from "@/components/common/DirectionalIcons"
 import { useForgotPasswordMutation } from "@/features/auth/authApi"
 import {
   patchPasswordResetSession,
@@ -16,11 +16,16 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useZodForm } from "@/hooks/useZodForm"
 import { AuthLayout } from "@/layouts/AuthLayout"
 import { parseApiError } from "@/shared/lib/parseApiError"
-import { otpVerifyFormSchema, type OtpVerifyFormValues } from "@/shared/schemas/passwordReset"
+import {
+  createOtpVerifyFormSchema,
+  type OtpVerifyFormValues,
+} from "@/shared/schemas/passwordReset"
 
 export function ResetPasswordVerifyPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const session = readPasswordResetSession()
   const [resendCode, { isLoading: isResending }] = useForgotPasswordMutation()
@@ -30,8 +35,7 @@ export function ResetPasswordVerifyPage() {
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<OtpVerifyFormValues>({
-    resolver: zodResolver(otpVerifyFormSchema),
+  } = useZodForm<OtpVerifyFormValues>(createOtpVerifyFormSchema, {
     defaultValues: { otp: "" },
   })
 
@@ -49,7 +53,7 @@ export function ResetPasswordVerifyPage() {
   const handleResend = async () => {
     try {
       const result = await resendCode({ email: session.email }).unwrap()
-      toast.success(result.message || "If the account exists, a verification code has been sent.")
+      toast.success(result.message || t("reset.verify.resendSuccessFallback"))
       patchPasswordResetSession({ sentAt: new Date().getTime(), otp: undefined })
       setValue("otp", "")
     } catch (error) {
@@ -61,10 +65,10 @@ export function ResetPasswordVerifyPage() {
     <AuthLayout>
       <AuthFormCard
         icon={ShieldCheck}
-        eyebrow="Account recovery"
-        tagline="Step 2 of 3"
-        title="Enter verification code"
-        description={`We sent a 6-digit code to ${maskedEmail}. Codes expire in 15 minutes.`}
+        eyebrow={t("reset.eyebrow")}
+        tagline={t("reset.stepOf", { step: 2 })}
+        title={t("reset.verify.title")}
+        description={t("reset.verify.description", { email: maskedEmail })}
       >
         <PasswordResetStepper currentStep={2} />
         <form className="flex flex-col gap-5" onSubmit={onSubmit} noValidate>
@@ -72,14 +76,14 @@ export function ResetPasswordVerifyPage() {
 
           <div className="space-y-2">
             <Label htmlFor="rp-otp" className="text-sm font-semibold text-ink-60">
-              Verification code
+              {t("reset.verify.codeLabel")}
             </Label>
             <Input
               id="rp-otp"
               inputMode="numeric"
               autoComplete="one-time-code"
               maxLength={6}
-              placeholder="000000"
+              placeholder={t("reset.verify.codePlaceholder")}
               className={authOtpInputClass}
               aria-invalid={Boolean(errors.otp)}
               {...register("otp", {
@@ -95,7 +99,7 @@ export function ResetPasswordVerifyPage() {
                 {errors.otp.message}
               </p>
             ) : (
-              <p className="text-xs text-ink-40">Enter all 6 digits — no spaces required.</p>
+              <p className="text-xs text-ink-40">{t("reset.verify.codeHint")}</p>
             )}
           </div>
 
@@ -104,8 +108,8 @@ export function ResetPasswordVerifyPage() {
             size="xl"
             className="mt-1 w-full gap-2.5 shadow-card-md active:scale-[0.98]"
           >
-            Continue
-            <ArrowRight className="size-5 shrink-0" strokeWidth={2} aria-hidden />
+            {t("common.continue")}
+            <ForwardArrow className="size-5 shrink-0" strokeWidth={2} aria-hidden />
           </Button>
 
           <Button
@@ -116,7 +120,7 @@ export function ResetPasswordVerifyPage() {
             onClick={() => void handleResend()}
           >
             <RotateCcw className="size-4" strokeWidth={2} aria-hidden />
-            {isResending ? "Sending new code…" : "Resend code"}
+            {isResending ? t("reset.verify.resending") : t("reset.verify.resend")}
           </Button>
 
           <Button
@@ -126,8 +130,8 @@ export function ResetPasswordVerifyPage() {
             className="w-full gap-2 text-ink-60 hover:text-ink"
           >
             <Link to="/forgot-password">
-              <ArrowLeft className="size-4" strokeWidth={2} aria-hidden />
-              Use a different email
+              <BackArrow className="size-4" strokeWidth={2} aria-hidden />
+              {t("reset.verify.differentEmail")}
             </Link>
           </Button>
         </form>

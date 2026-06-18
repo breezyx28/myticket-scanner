@@ -1,4 +1,5 @@
 import type { AppDispatch } from "@/app/store"
+import { defaultDeviceLabel } from "@/features/auth/deviceLabel"
 import { scannerApi } from "@/features/scanner/scannerApi"
 import { parseApiError } from "@/shared/lib/parseApiError"
 
@@ -9,14 +10,6 @@ import {
   setDeviceId,
   setScannerAccountId,
 } from "./authSlice"
-
-function defaultDeviceLabel(): string {
-  const platform =
-    typeof navigator !== "undefined" && "platform" in navigator
-      ? navigator.platform
-      : "Web"
-  return `Scanner ${platform}`.slice(0, 160)
-}
 
 export async function restoreScannerSession(dispatch: AppDispatch): Promise<void> {
   dispatch(setBootstrapLoading())

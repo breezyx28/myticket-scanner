@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -20,6 +21,7 @@ interface ManualEntryDialogProps {
 }
 
 export function ManualEntryDialog({ onSubmitPayload, triggerClassName }: ManualEntryDialogProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [value, setValue] = useState("")
 
@@ -34,28 +36,28 @@ export function ManualEntryDialog({ onSubmitPayload, triggerClassName }: ManualE
             triggerClassName,
           )}
         >
-          Manual entry
+          {t("scanner.manual.trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Enter ticket code</DialogTitle>
-          <DialogDescription>
-            Paste a ticket code (e.g. TIC-…) or the full QR JSON payload. Validation uses the live
-            scanner API for the selected event.
-          </DialogDescription>
+          <DialogTitle>{t("scanner.manual.title")}</DialogTitle>
+          <DialogDescription>{t("scanner.manual.description")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
-          <Label htmlFor="manual">Ticket code or payload</Label>
+          <Label htmlFor="manual">{t("scanner.manual.label")}</Label>
           <Input
             id="manual"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder='TIC-… or {"ticket_code":"TIC-…"}'
+            placeholder={t("scanner.manual.placeholder")}
             autoComplete="off"
           />
         </div>
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            {t("common.close")}
+          </Button>
           <Button
             type="button"
             disabled={!value.trim()}
@@ -65,7 +67,7 @@ export function ManualEntryDialog({ onSubmitPayload, triggerClassName }: ManualE
               setValue("")
             }}
           >
-            Validate
+            {t("scanner.manual.validate")}
           </Button>
         </DialogFooter>
       </DialogContent>

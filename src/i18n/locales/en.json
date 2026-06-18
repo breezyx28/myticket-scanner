@@ -1,0 +1,211 @@
+{
+  "common": {
+    "appName": "MyTicket Scanner",
+    "loading": "Loading scanner session…",
+    "close": "Close",
+    "back": "Back",
+    "continue": "Continue",
+    "retry": "Retry",
+    "email": "Email",
+    "password": "Password",
+    "guest": "Guest",
+    "event": "Event",
+    "venue": "Venue",
+    "seat": "Seat",
+    "ticketType": "Ticket type",
+    "ticket": "Ticket",
+    "sectionSeat": "Sec {{section}} · {{seat}}",
+    "eventFallback": "Event #{{id}}",
+    "eventLabel": "{{title}} · {{code}}",
+    "anotherDevice": "Another device",
+    "remoteScanToast": "{{source}}: {{ticketRef}} — {{label}}",
+    "notAvailable": "—",
+    "toastContainerAria": "Notifications"
+  },
+  "language": {
+    "switchLabel": "Language",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "auth": {
+    "brandScanner": "Scanner",
+    "login": {
+      "eyebrow": "Scanner access",
+      "tagline": "Sign in to validate tickets at the gate",
+      "title": "Welcome back",
+      "description": "Use your scanner account credentials.",
+      "emailPlaceholder": "you@venue.com",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "Forgot password?",
+      "signingIn": "Signing in…",
+      "submit": "Continue to scanner",
+      "footer": "Scanner accounts only. Need access? Contact your event organizer."
+    },
+    "accessDenied": {
+      "title": "Access denied",
+      "description": "This app is for scanner accounts only. Contact your organizer if you need access."
+    },
+    "twoFactorRequired": "Two-factor authentication is required. This app does not support 2FA yet.",
+    "brandName": "My<coral>Ticket</coral>",
+    "platformFallback": "Web",
+    "deviceLabel": "Scanner {{platform}}",
+    "platforms": {
+      "ios": "iOS",
+      "android": "Android",
+      "windows": "Windows",
+      "mac": "macOS",
+      "linux": "Linux"
+    }
+  },
+  "reset": {
+    "eyebrow": "Account recovery",
+    "stepOf": "Step {{step}} of 3",
+    "stepperAria": "Password reset progress",
+    "stepEmail": "Email",
+    "stepCode": "Code",
+    "stepPassword": "Password",
+    "forgot": {
+      "title": "Forgot password?",
+      "description": "Enter your scanner account email. We will send a 6-digit code if the account is eligible.",
+      "securityNote": "For your security we always show the same confirmation message — we never reveal whether an email is registered.",
+      "sending": "Sending code…",
+      "successFallback": "If the account exists, a verification code has been sent to your email.",
+      "backToSignIn": "Back to sign in"
+    },
+    "verify": {
+      "title": "Enter verification code",
+      "description": "We sent a 6-digit code to {{email}}. Codes expire in 15 minutes.",
+      "codeLabel": "Verification code",
+      "codePlaceholder": "000000",
+      "codeHint": "Enter all 6 digits — no spaces required.",
+      "resending": "Sending new code…",
+      "resend": "Resend code",
+      "resendSuccessFallback": "If the account exists, a verification code has been sent.",
+      "differentEmail": "Use a different email"
+    },
+    "new": {
+      "title": "Choose a new password",
+      "description": "Create a strong password with at least 8 characters for your scanner account.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "passwordPlaceholder": "At least 8 characters",
+      "updating": "Updating password…",
+      "submit": "Reset password",
+      "successFallback": "Password reset successful.",
+      "backToVerify": "Back to verification code"
+    },
+    "otp": {
+      "expired": "Code expired — request a new one below.",
+      "expiresIn": "Code expires in"
+    }
+  },
+  "scanner": {
+    "layout": {
+      "homeAria": "Scanner home",
+      "active": "Active",
+      "signedIn": "Signed in",
+      "scannerUser": "Scanner",
+      "entryOnceShort": "Once",
+      "entryOnceLong": "One-time entry",
+      "entryMultiShort": "Multi",
+      "entryMultiLong": "Multi-scan / re-entry",
+      "logoutAria": "Log out"
+    },
+    "event": {
+      "selectAria": "Select event",
+      "placeholder": "Event"
+    },
+    "camera": {
+      "off": "Camera off",
+      "on": "Camera on",
+      "offAria": "Turn camera off",
+      "onAria": "Turn camera on",
+      "retry": "Retry camera",
+      "retrying": "Retrying camera…",
+      "isOff": "Camera is off",
+      "isOffDescription": "Turn the camera back on to scan QR codes, or use manual entry for ticket codes.",
+      "turnOn": "Turn camera on",
+      "fixPermissions": "Fix camera permissions above, or enter a ticket code manually.",
+      "denied": "Camera access was denied. Use manual entry instead.",
+      "startFailed": "Could not start the camera on this device.",
+      "viewfinderAria": "Camera viewfinder for QR scanning",
+      "alignQr": "Align the QR code within the frame",
+      "oneScanHint": "One scan per ticket — wait for the result before scanning again",
+      "srOff": "Camera is off.",
+      "srPaused": "Camera paused while validating or showing a scan result.",
+      "srActive": "Camera active. Point at a ticket QR code."
+    },
+    "manual": {
+      "trigger": "Manual entry",
+      "title": "Enter ticket code",
+      "description": "Paste a ticket code (e.g. TIC-…) or the full QR JSON payload. Validation uses the live scanner API for the selected event.",
+      "label": "Ticket code or payload",
+      "placeholder": "TIC-… or {\"ticket_code\":\"TIC-…\"}",
+      "validate": "Validate"
+    },
+    "result": {
+      "validating": "Validating ticket.",
+      "checking": "Checking ticket…",
+      "checkingDescription": "Please wait while we validate this scan.",
+      "entryGranted": "Entry granted",
+      "entryDenied": "Entry denied",
+      "alreadyUsed": "Already used",
+      "expired": "Expired",
+      "validBody": "Ticket is valid for this event.",
+      "usedBody": "{{holderName}} — this ticket was already scanned for {{eventName}}.",
+      "scanNext": "Scan next",
+      "autoClose": "This dialog closes automatically.",
+      "srSuccess": "Entry granted for {{holderName}}.",
+      "srFailed": "Entry denied. {{message}}",
+      "srUsed": "Already used ticket for {{holderName}}."
+    },
+    "resultLabels": {
+      "ok": "Entry granted",
+      "duplicate": "Already used",
+      "invalid": "Invalid ticket",
+      "expired": "Expired",
+      "wrong_event": "Wrong event"
+    },
+    "toasts": {
+      "selectEvent": "Select an event first.",
+      "deviceNotRegistered": "Device not registered. Sign in again.",
+      "invalidQr": "Invalid QR — no ticket code found.",
+      "wrongEvent": "This ticket is for a different event."
+    },
+    "realtime": {
+      "connecting": "Sync connecting",
+      "connected": "Live sync on"
+    }
+  },
+  "validation": {
+    "emailInvalid": "Enter a valid email address",
+    "passwordRequired": "Password is required",
+    "emailOrPhoneRequired": "Email or phone is required",
+    "otpInvalid": "Enter the 6-digit code from your email",
+    "passwordMin": "Password must be at least 8 characters",
+    "confirmPasswordRequired": "Confirm your password",
+    "passwordsMismatch": "Passwords do not match"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Network error. Check your connection and try again.",
+    "requestFailed": "Request failed.",
+    "tooManyAttempts": "Too many attempts. Please wait and try again.",
+    "sessionExpired": "Session expired. Please sign in again.",
+    "forbidden": "You do not have permission for this action.",
+    "validationFailed": "The given data was invalid.",
+    "scanValidationFailed": "Unable to validate this ticket.",
+    "scanValidationDefault": "Ticket not found or could not be validated.",
+    "invalidApiResponse": "Invalid API response: {{label}}"
+  },
+  "scanFailure": {
+    "scanner_not_assigned": "Scanner is not assigned to this event.",
+    "scanner_not_owned_by_event_organizer": "This scanner account is not authorized for this event's organizer.",
+    "ticket_not_found": "Ticket not found or invalid.",
+    "ticket_from_other_event": "This ticket is for another event.",
+    "before_window": "Entry is not open yet for this event.",
+    "after_window": "This event has ended.",
+    "already_scanned": "This ticket was already scanned.",
+    "ticket_status_invalid": "Ticket status is not valid for entry."
+  }
+}

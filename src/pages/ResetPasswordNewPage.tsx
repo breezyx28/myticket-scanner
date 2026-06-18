@@ -1,12 +1,12 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft, ArrowRight, KeyRound } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { KeyRound } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Link, Navigate, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 import { AuthFormCard } from "@/components/auth/AuthFormCard"
 import { PasswordResetStepper } from "@/components/auth/PasswordResetStepper"
 import { authInputClass } from "@/components/auth/authFormStyles"
+import { BackArrow, ForwardArrow } from "@/components/common/DirectionalIcons"
 import { useResetPasswordMutation } from "@/features/auth/authApi"
 import {
   clearPasswordResetSession,
@@ -15,14 +15,16 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useZodForm } from "@/hooks/useZodForm"
 import { AuthLayout } from "@/layouts/AuthLayout"
 import { parseApiError } from "@/shared/lib/parseApiError"
 import {
-  newPasswordFormSchema,
+  createNewPasswordFormSchema,
   type NewPasswordFormValues,
 } from "@/shared/schemas/passwordReset"
 
 export function ResetPasswordNewPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const session = readPasswordResetSession()
   const [resetPassword, { isLoading }] = useResetPasswordMutation()
@@ -31,8 +33,7 @@ export function ResetPasswordNewPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<NewPasswordFormValues>({
-    resolver: zodResolver(newPasswordFormSchema),
+  } = useZodForm<NewPasswordFormValues>(createNewPasswordFormSchema, {
     defaultValues: { password: "", confirmPassword: "" },
   })
 
@@ -49,7 +50,7 @@ export function ResetPasswordNewPage() {
       }).unwrap()
 
       clearPasswordResetSession()
-      toast.success(result.message || "Password reset successful.")
+      toast.success(result.message || t("reset.new.successFallback"))
       navigate("/login", { replace: true })
     } catch (error) {
       const parsed = parseApiError(error)
@@ -74,23 +75,23 @@ export function ResetPasswordNewPage() {
     <AuthLayout>
       <AuthFormCard
         icon={KeyRound}
-        eyebrow="Account recovery"
-        tagline="Step 3 of 3"
-        title="Choose a new password"
-        description="Create a strong password with at least 8 characters for your scanner account."
+        eyebrow={t("reset.eyebrow")}
+        tagline={t("reset.stepOf", { step: 3 })}
+        title={t("reset.new.title")}
+        description={t("reset.new.description")}
       >
         <PasswordResetStepper currentStep={3} />
         <form className="flex flex-col gap-5" onSubmit={onSubmit} noValidate>
           <div className="space-y-2">
             <Label htmlFor="rp-password" className="text-sm font-semibold text-ink-60">
-              New password
+              {t("reset.new.newPassword")}
             </Label>
             <Input
               id="rp-password"
               type="password"
               autoComplete="new-password"
               className={authInputClass}
-              placeholder="At least 8 characters"
+              placeholder={t("reset.new.passwordPlaceholder")}
               aria-invalid={Boolean(errors.password)}
               {...register("password")}
             />
@@ -103,7 +104,7 @@ export function ResetPasswordNewPage() {
 
           <div className="space-y-2">
             <Label htmlFor="rp-confirm" className="text-sm font-semibold text-ink-60">
-              Confirm password
+              {t("reset.new.confirmPassword")}
             </Label>
             <Input
               id="rp-confirm"
@@ -132,12 +133,12 @@ export function ResetPasswordNewPage() {
                   className="size-5 animate-spin rounded-full border-2 border-ink border-t-transparent"
                   aria-hidden
                 />
-                Updating password…
+                {t("reset.new.updating")}
               </>
             ) : (
               <>
-                Reset password
-                <ArrowRight className="size-5 shrink-0" strokeWidth={2} aria-hidden />
+                {t("reset.new.submit")}
+                <ForwardArrow className="size-5 shrink-0" strokeWidth={2} aria-hidden />
               </>
             )}
           </Button>
@@ -149,8 +150,8 @@ export function ResetPasswordNewPage() {
             className="w-full gap-2 text-ink-60 hover:text-ink"
           >
             <Link to="/reset-password/verify">
-              <ArrowLeft className="size-4" strokeWidth={2} aria-hidden />
-              Back to verification code
+              <BackArrow className="size-4" strokeWidth={2} aria-hidden />
+              {t("reset.new.backToVerify")}
             </Link>
           </Button>
         </form>

@@ -1,7 +1,6 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowRight, QrCode, ShieldOff } from "lucide-react"
+import { QrCode, ShieldOff } from "lucide-react"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { Link, Navigate, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
@@ -11,16 +10,19 @@ import { handleLoginResponse } from "@/features/auth/bootstrapSession"
 import { selectIsAuthenticated } from "@/features/auth/authSlice"
 import { AuthFormCard } from "@/components/auth/AuthFormCard"
 import { authInputClass } from "@/components/auth/authFormStyles"
+import { ForwardArrow } from "@/components/common/DirectionalIcons"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useZodForm } from "@/hooks/useZodForm"
 import { AuthLayout } from "@/layouts/AuthLayout"
 import { parseApiError } from "@/shared/lib/parseApiError"
-import { loginFormSchema, type LoginFormValues } from "@/shared/schemas/auth"
+import { createLoginFormSchema, type LoginFormValues } from "@/shared/schemas/auth"
 import { cn } from "@/lib/utils"
 
 export function LoginPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const isAuthenticated = useAppSelector(selectIsAuthenticated)
@@ -31,8 +33,7 @@ export function LoginPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginFormSchema),
+  } = useZodForm<LoginFormValues>(createLoginFormSchema, {
     defaultValues: { email: "", password: "" },
   })
 
@@ -50,10 +51,7 @@ export function LoginPage() {
       if (!boot.ok) {
         if (boot.twoFactor) {
           toast.error(boot.message)
-        } else if (
-          boot.message.toLowerCase().includes("permission") ||
-          boot.message.toLowerCase().includes("scanner")
-        ) {
+        } else if (boot.accessDenied) {
           setAccessDenied(true)
         } else {
           toast.error(boot.message)
@@ -76,10 +74,10 @@ export function LoginPage() {
     <AuthLayout>
       <AuthFormCard
         icon={QrCode}
-        eyebrow="Scanner access"
-        tagline="Sign in to validate tickets at the gate"
-        title="Welcome back"
-        description="Use your scanner account credentials."
+        eyebrow={t("auth.login.eyebrow")}
+        tagline={t("auth.login.tagline")}
+        title={t("auth.login.title")}
+        description={t("auth.login.description")}
       >
         <form className="flex flex-col gap-5" onSubmit={onSubmit} noValidate>
           {accessDenied ? (
@@ -87,27 +85,29 @@ export function LoginPage() {
               variant="destructive"
               className={cn(
                 "rounded-2xl border-red-200/90 bg-red-50 text-red-900",
-                "[&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-red-600",
+                "[&>svg]:text-red-600",
               )}
             >
               <ShieldOff className="size-4" strokeWidth={2} aria-hidden />
-              <AlertTitle className="font-bold text-red-950">Access denied</AlertTitle>
+              <AlertTitle className="font-bold text-red-950">
+                {t("auth.accessDenied.title")}
+              </AlertTitle>
               <AlertDescription className="text-sm leading-relaxed text-red-800/90">
-                This app is for scanner accounts only. Contact your organizer if you need access.
+                {t("auth.accessDenied.description")}
               </AlertDescription>
             </Alert>
           ) : null}
 
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-semibold text-ink-60">
-              Email
+              {t("common.email")}
             </Label>
             <Input
               id="email"
               type="email"
               autoComplete="username"
               className={authInputClass}
-              placeholder="you@venue.com"
+              placeholder={t("auth.login.emailPlaceholder")}
               aria-invalid={Boolean(errors.email)}
               {...register("email")}
             />
@@ -121,13 +121,13 @@ export function LoginPage() {
           <div className="space-y-2">
             <div className="flex min-h-[44px] items-end justify-between gap-3">
               <Label htmlFor="password" className="text-sm font-semibold text-ink-60">
-                Password
+                {t("common.password")}
               </Label>
               <Link
                 to="/forgot-password"
                 className="pb-0.5 text-xs font-semibold text-coral underline-offset-2 transition-colors hover:text-coral-dark hover:underline focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
               >
-                Forgot password?
+                {t("auth.login.forgotPassword")}
               </Link>
             </div>
             <Input
@@ -135,7 +135,7 @@ export function LoginPage() {
               type="password"
               autoComplete="current-password"
               className={authInputClass}
-              placeholder="••••••••"
+              placeholder={t("auth.login.passwordPlaceholder")}
               aria-invalid={Boolean(errors.password)}
               {...register("password")}
             />
@@ -158,19 +158,17 @@ export function LoginPage() {
                   className="size-5 animate-spin rounded-full border-2 border-ink border-t-transparent"
                   aria-hidden
                 />
-                Signing in…
+                {t("auth.login.signingIn")}
               </>
             ) : (
               <>
-                Continue to scanner
-                <ArrowRight className="size-5 shrink-0" strokeWidth={2} aria-hidden />
+                {t("auth.login.submit")}
+                <ForwardArrow className="size-5 shrink-0" strokeWidth={2} aria-hidden />
               </>
             )}
           </Button>
 
-          <p className="text-center text-xs leading-relaxed text-ink-40">
-            Scanner accounts only. Need access? Contact your event organizer.
-          </p>
+          <p className="text-center text-xs leading-relaxed text-ink-40">{t("auth.login.footer")}</p>
         </form>
       </AuthFormCard>
     </AuthLayout>

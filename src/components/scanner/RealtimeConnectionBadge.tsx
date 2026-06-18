@@ -1,10 +1,7 @@
-import { cn } from "@/lib/utils"
-import type { RealtimeConnectionState } from "@/features/realtime/useScannerScanRealtime"
+import { useTranslation } from "react-i18next"
 
-const STATE_COPY: Record<Exclude<RealtimeConnectionState, "idle" | "unavailable">, string> = {
-  connecting: "Sync connecting",
-  connected: "Live sync on",
-}
+import type { RealtimeConnectionState } from "@/features/realtime/useScannerScanRealtime"
+import { cn } from "@/lib/utils"
 
 export function RealtimeConnectionBadge({
   state,
@@ -13,9 +10,15 @@ export function RealtimeConnectionBadge({
   state: RealtimeConnectionState
   className?: string
 }) {
+  const { t } = useTranslation()
+
   if (state === "idle" || state === "unavailable") return null
 
   const connected = state === "connected"
+  const label =
+    state === "connected"
+      ? t("scanner.realtime.connected")
+      : t("scanner.realtime.connecting")
 
   return (
     <span
@@ -26,7 +29,7 @@ export function RealtimeConnectionBadge({
           : "border-amber-400/30 bg-amber-500/15 text-amber-100",
         className,
       )}
-      title={STATE_COPY[state]}
+      title={label}
     >
       <span
         className={cn(
@@ -35,7 +38,7 @@ export function RealtimeConnectionBadge({
         )}
         aria-hidden
       />
-      <span className="truncate">{STATE_COPY[state]}</span>
+      <span className="truncate">{label}</span>
     </span>
   )
 }

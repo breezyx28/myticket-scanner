@@ -1,0 +1,211 @@
+{
+  "common": {
+    "appName": "ماسح MyTicket",
+    "loading": "جارٍ تحميل جلسة الماسح…",
+    "close": "إغلاق",
+    "back": "رجوع",
+    "continue": "متابعة",
+    "retry": "إعادة المحاولة",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "guest": "ضيف",
+    "event": "الفعالية",
+    "venue": "المكان",
+    "seat": "المقعد",
+    "ticketType": "نوع التذكرة",
+    "ticket": "تذكرة",
+    "sectionSeat": "ق {{section}} · {{seat}}",
+    "eventFallback": "فعالية #{{id}}",
+    "eventLabel": "{{title}} · {{code}}",
+    "anotherDevice": "جهاز آخر",
+    "remoteScanToast": "{{source}}: {{ticketRef}} — {{label}}",
+    "notAvailable": "غير متوفر",
+    "toastContainerAria": "الإشعارات"
+  },
+  "language": {
+    "switchLabel": "اللغة",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "auth": {
+    "brandScanner": "الماسح",
+    "login": {
+      "eyebrow": "دخول الماسح",
+      "tagline": "سجّل الدخول للتحقق من التذاكر عند البوابة",
+      "title": "مرحباً بعودتك",
+      "description": "استخدم بيانات حساب الماسح الخاص بك.",
+      "emailPlaceholder": "you@venue.com",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "signingIn": "جارٍ تسجيل الدخول…",
+      "submit": "المتابعة إلى الماسح",
+      "footer": "لحسابات الماسح فقط. تحتاج صلاحية؟ تواصل مع منظم الفعالية."
+    },
+    "accessDenied": {
+      "title": "تم رفض الوصول",
+      "description": "هذا التطبيق مخصص لحسابات الماسح فقط. تواصل مع المنظم إذا كنت تحتاج صلاحية."
+    },
+    "twoFactorRequired": "المصادقة الثنائية مطلوبة. هذا التطبيق لا يدعم المصادقة الثنائية بعد.",
+    "brandName": "My<coral>Ticket</coral>",
+    "platformFallback": "ويب",
+    "deviceLabel": "ماسح {{platform}}",
+    "platforms": {
+      "ios": "iOS",
+      "android": "أندرويد",
+      "windows": "ويندوز",
+      "mac": "macOS",
+      "linux": "لينكس"
+    }
+  },
+  "reset": {
+    "eyebrow": "استعادة الحساب",
+    "stepOf": "الخطوة {{step}} من 3",
+    "stepperAria": "تقدم إعادة تعيين كلمة المرور",
+    "stepEmail": "البريد",
+    "stepCode": "الرمز",
+    "stepPassword": "كلمة المرور",
+    "forgot": {
+      "title": "نسيت كلمة المرور؟",
+      "description": "أدخل بريد حساب الماسح. سنرسل رمزاً من 6 أرقام إذا كان الحساب مؤهلاً.",
+      "securityNote": "لأمانك نعرض دائماً نفس رسالة التأكيد — لا نكشف أبداً ما إذا كان البريد مسجلاً.",
+      "sending": "جارٍ إرسال الرمز…",
+      "successFallback": "إذا كان الحساب موجوداً، تم إرسال رمز التحقق إلى بريدك الإلكتروني.",
+      "backToSignIn": "العودة لتسجيل الدخول"
+    },
+    "verify": {
+      "title": "أدخل رمز التحقق",
+      "description": "أرسلنا رمزاً من 6 أرقام إلى {{email}}. تنتهي صلاحية الرموز خلال 15 دقيقة.",
+      "codeLabel": "رمز التحقق",
+      "codePlaceholder": "000000",
+      "codeHint": "أدخل الأرقام الستة — لا حاجة لمسافات.",
+      "resending": "جارٍ إرسال رمز جديد…",
+      "resend": "إعادة إرسال الرمز",
+      "resendSuccessFallback": "إذا كان الحساب موجوداً، تم إرسال رمز التحقق.",
+      "differentEmail": "استخدام بريد مختلف"
+    },
+    "new": {
+      "title": "اختر كلمة مرور جديدة",
+      "description": "أنشئ كلمة مرور قوية من 8 أحرف على الأقل لحساب الماسح.",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "passwordPlaceholder": "8 أحرف على الأقل",
+      "updating": "جارٍ تحديث كلمة المرور…",
+      "submit": "إعادة تعيين كلمة المرور",
+      "successFallback": "تمت إعادة تعيين كلمة المرور بنجاح.",
+      "backToVerify": "العودة لرمز التحقق"
+    },
+    "otp": {
+      "expired": "انتهت صلاحية الرمز — اطلب رمزاً جديداً أدناه.",
+      "expiresIn": "ينتهي الرمز خلال"
+    }
+  },
+  "scanner": {
+    "layout": {
+      "homeAria": "الصفحة الرئيسية للماسح",
+      "active": "نشط",
+      "signedIn": "مسجّل الدخول",
+      "scannerUser": "ماسح",
+      "entryOnceShort": "مرة",
+      "entryOnceLong": "دخول لمرة واحدة",
+      "entryMultiShort": "متعدد",
+      "entryMultiLong": "مسح متعدد / إعادة دخول",
+      "logoutAria": "تسجيل الخروج"
+    },
+    "event": {
+      "selectAria": "اختر الفعالية",
+      "placeholder": "الفعالية"
+    },
+    "camera": {
+      "off": "إيقاف الكاميرا",
+      "on": "تشغيل الكاميرا",
+      "offAria": "إيقاف الكاميرا",
+      "onAria": "تشغيل الكاميرا",
+      "retry": "إعادة محاولة الكاميرا",
+      "retrying": "جارٍ إعادة محاولة الكاميرا…",
+      "isOff": "الكاميرا متوقفة",
+      "isOffDescription": "شغّل الكاميرا لمسح رموز QR، أو استخدم الإدخال اليدوي لرموز التذاكر.",
+      "turnOn": "تشغيل الكاميرا",
+      "fixPermissions": "أصلح أذونات الكاميرا أعلاه، أو أدخل رمز التذكرة يدوياً.",
+      "denied": "تم رفض الوصول للكاميرا. استخدم الإدخال اليدوي بدلاً من ذلك.",
+      "startFailed": "تعذّر تشغيل الكاميرا على هذا الجهاز.",
+      "viewfinderAria": "عارض الكاميرا لمسح QR",
+      "alignQr": "ضع رمز QR داخل الإطار",
+      "oneScanHint": "مسح واحد لكل تذكرة — انتظر النتيجة قبل المسح مرة أخرى",
+      "srOff": "الكاميرا متوقفة.",
+      "srPaused": "الكاميرا متوقفة مؤقتاً أثناء التحقق أو عرض نتيجة المسح.",
+      "srActive": "الكاميرا نشطة. وجّهها نحو رمز QR للتذكرة."
+    },
+    "manual": {
+      "trigger": "إدخال يدوي",
+      "title": "أدخل رمز التذكرة",
+      "description": "الصق رمز التذكرة (مثل TIC-…) أو حمولة JSON الكاملة لـ QR. يستخدم التحقق واجهة الماسح المباشرة للفعالية المحددة.",
+      "label": "رمز التذكرة أو الحمولة",
+      "placeholder": "TIC-… أو {\"ticket_code\":\"TIC-…\"}",
+      "validate": "تحقق"
+    },
+    "result": {
+      "validating": "جارٍ التحقق من التذكرة.",
+      "checking": "جارٍ فحص التذكرة…",
+      "checkingDescription": "يرجى الانتظار أثناء التحقق من هذا المسح.",
+      "entryGranted": "تم السماح بالدخول",
+      "entryDenied": "تم رفض الدخول",
+      "alreadyUsed": "مستخدمة مسبقاً",
+      "expired": "منتهية الصلاحية",
+      "validBody": "التذكرة صالحة لهذه الفعالية.",
+      "usedBody": "{{holderName}} — تم مسح هذه التذكرة مسبقاً لـ {{eventName}}.",
+      "scanNext": "مسح التالية",
+      "autoClose": "يُغلق هذا الحوار تلقائياً.",
+      "srSuccess": "تم السماح بالدخول لـ {{holderName}}.",
+      "srFailed": "تم رفض الدخول. {{message}}",
+      "srUsed": "تذكرة مستخدمة مسبقاً لـ {{holderName}}."
+    },
+    "resultLabels": {
+      "ok": "تم السماح بالدخول",
+      "duplicate": "مستخدمة مسبقاً",
+      "invalid": "تذكرة غير صالحة",
+      "expired": "منتهية الصلاحية",
+      "wrong_event": "فعالية خاطئة"
+    },
+    "toasts": {
+      "selectEvent": "اختر فعالية أولاً.",
+      "deviceNotRegistered": "الجهاز غير مسجّل. سجّل الدخول مرة أخرى.",
+      "invalidQr": "رمز QR غير صالح — لم يُعثر على رمز التذكرة.",
+      "wrongEvent": "هذه التذكرة لفعالية مختلفة."
+    },
+    "realtime": {
+      "connecting": "جارٍ الاتصال بالمزامنة",
+      "connected": "المزامنة المباشرة مفعّلة"
+    }
+  },
+  "validation": {
+    "emailInvalid": "أدخل عنوان بريد إلكتروني صالحاً",
+    "passwordRequired": "كلمة المرور مطلوبة",
+    "emailOrPhoneRequired": "البريد الإلكتروني أو الهاتف مطلوب",
+    "otpInvalid": "أدخل الرمز المكوّن من 6 أرقام من بريدك",
+    "passwordMin": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+    "confirmPasswordRequired": "أكّد كلمة المرور",
+    "passwordsMismatch": "كلمتا المرور غير متطابقتين"
+  },
+  "errors": {
+    "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "network": "خطأ في الشبكة. تحقق من اتصالك وحاول مرة أخرى.",
+    "requestFailed": "فشل الطلب.",
+    "tooManyAttempts": "محاولات كثيرة جداً. يرجى الانتظار والمحاولة مرة أخرى.",
+    "sessionExpired": "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.",
+    "forbidden": "ليس لديك صلاحية لهذا الإجراء.",
+    "validationFailed": "البيانات المدخلة غير صالحة.",
+    "scanValidationFailed": "تعذّر التحقق من هذه التذكرة.",
+    "scanValidationDefault": "التذكرة غير موجودة أو تعذّر التحقق منها.",
+    "invalidApiResponse": "استجابة API غير صالحة: {{label}}"
+  },
+  "scanFailure": {
+    "scanner_not_assigned": "الماسح غير معيّن لهذه الفعالية.",
+    "scanner_not_owned_by_event_organizer": "حساب الماسح غير مصرّح له لمنظم هذه الفعالية.",
+    "ticket_not_found": "التذكرة غير موجودة أو غير صالحة.",
+    "ticket_from_other_event": "هذه التذكرة لفعالية أخرى.",
+    "before_window": "الدخول غير مفتوح بعد لهذه الفعالية.",
+    "after_window": "انتهت هذه الفعالية.",
+    "already_scanned": "تم مسح هذه التذكرة مسبقاً.",
+    "ticket_status_invalid": "حالة التذكرة غير صالحة للدخول."
+  }
+}

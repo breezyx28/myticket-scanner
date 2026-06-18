@@ -20,6 +20,7 @@ Current implementation includes:
 - Live scan validation via `POST /scans` with result mapping to UI modals.
 - Optional Reverb subscription on `scanner.{accountId}.scans` for cross-device scan toasts (HTTP remains canonical).
 - Event selection from API assignments (`event_id`, `entry_mode` badge).
+- **i18n:** English + Arabic (`i18next`), default `ar`, RTL/LTR via `html` `dir`, `Accept-Language` header on all API calls.
 
 Not implemented yet (MVP follow-ups):
 - 2FA login challenge UI.

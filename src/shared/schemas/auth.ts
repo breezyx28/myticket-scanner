@@ -1,25 +1,28 @@
+import type { TFunction } from "i18next"
 import { z } from "zod"
 
-export const loginFormSchema = z.object({
-  email: z.string().trim().email("Enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-})
-
-export type LoginFormValues = z.infer<typeof loginFormSchema>
-
-export const loginRequestSchema = z
-  .object({
-    email: z.string().email().optional(),
-    phone: z.string().max(20).optional(),
-    password: z.string().min(1),
-    otp: z.string().optional(),
-  })
-  .refine((v) => Boolean(v.email) || Boolean(v.phone), {
-    message: "Email or phone is required",
-    path: ["email"],
+export const createLoginFormSchema = (t: TFunction) =>
+  z.object({
+    email: z.string().trim().email(t("validation.emailInvalid")),
+    password: z.string().min(1, t("validation.passwordRequired")),
   })
 
-export type LoginRequest = z.infer<typeof loginRequestSchema>
+export type LoginFormValues = z.infer<ReturnType<typeof createLoginFormSchema>>
+
+export const createLoginRequestSchema = (t: TFunction) =>
+  z
+    .object({
+      email: z.string().email().optional(),
+      phone: z.string().max(20).optional(),
+      password: z.string().min(1),
+      otp: z.string().optional(),
+    })
+    .refine((v) => Boolean(v.email) || Boolean(v.phone), {
+      message: t("validation.emailOrPhoneRequired"),
+      path: ["email"],
+    })
+
+export type LoginRequest = z.infer<ReturnType<typeof createLoginRequestSchema>>
 
 export const authUserSchema = z.object({
   id: z.number(),

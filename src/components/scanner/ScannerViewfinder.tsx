@@ -1,10 +1,9 @@
 import { Html5Qrcode } from "html5-qrcode"
 import { useCallback, useEffect, useId, useRef } from "react"
+import { useTranslation } from "react-i18next"
 
 interface ScannerViewfinderProps {
-  /** When false, camera is stopped (user toggled off). */
   active: boolean
-  /** When true, decoder callbacks are ignored (scan in flight or result open). */
   paused: boolean
   onDecoded: (text: string) => void
   onCameraError: (message: string | null) => void
@@ -23,18 +22,28 @@ const scanConfig = {
   },
 }
 
+function isCameraPermissionError(error: unknown): boolean {
+  if (error instanceof DOMException) {
+    return error.name === "NotAllowedError" || error.name === "PermissionDeniedError"
+  }
+  const msg = error instanceof Error ? error.message : String(error)
+  return /NotAllowed|Permission|not allowed/i.test(msg)
+}
+
 export function ScannerViewfinder({
   active,
   paused,
   onDecoded,
   onCameraError,
 }: ScannerViewfinderProps) {
+  const { t } = useTranslation()
   const reactId = useId().replace(/:/g, "")
   const regionId = `qr-region-${reactId}`
   const instanceRef = useRef<Html5Qrcode | null>(null)
   const decodeCb = useRef(onDecoded)
   const pausedRef = useRef(paused)
   const activeRef = useRef(active)
+  const onCameraErrorRef = useRef(onCameraError)
 
   useEffect(() => {
     decodeCb.current = onDecoded
@@ -47,6 +56,10 @@ export function ScannerViewfinder({
   useEffect(() => {
     activeRef.current = active
   }, [active])
+
+  useEffect(() => {
+    onCameraErrorRef.current = onCameraError
+  }, [onCameraError])
 
   const cleanup = useCallback(async () => {
     const q = instanceRef.current
@@ -70,7 +83,7 @@ export function ScannerViewfinder({
     const start = async () => {
       await cleanup()
       if (cancelled || !active || paused) return
-      onCameraError(null)
+      onCameraErrorRef.current(null)
       const html5 = new Html5Qrcode(regionId, { verbose: false })
       instanceRef.current = html5
       const onOk = (text: string) => {
@@ -88,11 +101,10 @@ export function ScannerViewfinder({
           await html5.start({ facingMode: "user" }, scanConfig, onOk, onFail)
         } catch (e) {
           if (cancelled) return
-          const msg = e instanceof Error ? e.message : String(e)
-          if (/NotAllowed|Permission|not allowed/i.test(msg)) {
-            onCameraError("Camera access was denied. Use manual entry instead.")
+          if (isCameraPermissionError(e)) {
+            onCameraErrorRef.current(t("scanner.camera.denied"))
           } else {
-            onCameraError("Could not start the camera on this device.")
+            onCameraErrorRef.current(t("scanner.camera.startFailed"))
           }
         }
       }
@@ -104,14 +116,14 @@ export function ScannerViewfinder({
       cancelled = true
       void cleanup()
     }
-  }, [active, cleanup, onCameraError, paused, regionId])
+  }, [active, cleanup, paused, regionId, t])
 
   return (
     <div className="relative h-full min-h-0 w-full bg-black">
       <div
         id={regionId}
         className="absolute inset-0 overflow-hidden [&_video]:h-full [&_video]:w-full [&_video]:object-cover"
-        aria-label="Camera viewfinder for QR scanning"
+        aria-label={t("scanner.camera.viewfinderAria")}
       />
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-3 sm:p-6 md:p-10">
         <div
@@ -124,18 +136,18 @@ export function ScannerViewfinder({
         aria-hidden
       >
         <p className="text-[13px] font-medium text-white/90 sm:text-sm">
-          Align the QR code within the frame
+          {t("scanner.camera.alignQr")}
         </p>
         <p className="mt-1 text-[11px] text-white/55 sm:text-xs">
-          One scan per ticket — wait for the result before scanning again
+          {t("scanner.camera.oneScanHint")}
         </p>
       </div>
       <p className="sr-only" aria-live="polite">
         {!active
-          ? "Camera is off."
+          ? t("scanner.camera.srOff")
           : paused
-            ? "Camera paused while validating or showing a scan result."
-            : "Camera active. Point at a ticket QR code."}
+            ? t("scanner.camera.srPaused")
+            : t("scanner.camera.srActive")}
       </p>
     </div>
   )

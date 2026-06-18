@@ -1,28 +1,27 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft, ArrowRight, Mail } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { Mail } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 import { AuthFormCard } from "@/components/auth/AuthFormCard"
 import { PasswordResetStepper } from "@/components/auth/PasswordResetStepper"
 import { authInputClass } from "@/components/auth/authFormStyles"
+import { BackArrow, ForwardArrow } from "@/components/common/DirectionalIcons"
 import { useForgotPasswordMutation } from "@/features/auth/authApi"
 import { writePasswordResetSession } from "@/features/auth/passwordResetSession"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useZodForm } from "@/hooks/useZodForm"
 import { AuthLayout } from "@/layouts/AuthLayout"
 import { parseApiError } from "@/shared/lib/parseApiError"
 import {
-  forgotPasswordFormSchema,
+  createForgotPasswordFormSchema,
   type ForgotPasswordFormValues,
 } from "@/shared/schemas/passwordReset"
 
-const GENERIC_SUCCESS =
-  "If the account exists, a verification code has been sent to your email."
-
 export function ForgotPasswordPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [forgotPassword, { isLoading }] = useForgotPasswordMutation()
 
@@ -30,8 +29,7 @@ export function ForgotPasswordPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ForgotPasswordFormValues>({
-    resolver: zodResolver(forgotPasswordFormSchema),
+  } = useZodForm<ForgotPasswordFormValues>(createForgotPasswordFormSchema, {
     defaultValues: { email: "" },
   })
 
@@ -40,7 +38,7 @@ export function ForgotPasswordPage() {
     const sentAt = new Date().getTime()
     try {
       const result = await forgotPassword({ email }).unwrap()
-      toast.success(result.message || GENERIC_SUCCESS)
+      toast.success(result.message || t("reset.forgot.successFallback"))
       writePasswordResetSession({ email, sentAt })
       navigate("/reset-password/verify", { replace: true })
     } catch (error) {
@@ -57,23 +55,23 @@ export function ForgotPasswordPage() {
     <AuthLayout>
       <AuthFormCard
         icon={Mail}
-        eyebrow="Account recovery"
-        tagline="Step 1 of 3"
-        title="Forgot password?"
-        description="Enter your scanner account email. We will send a 6-digit code if the account is eligible."
+        eyebrow={t("reset.eyebrow")}
+        tagline={t("reset.stepOf", { step: 1 })}
+        title={t("reset.forgot.title")}
+        description={t("reset.forgot.description")}
       >
         <PasswordResetStepper currentStep={1} />
         <form className="flex flex-col gap-5" onSubmit={onSubmit} noValidate>
           <div className="space-y-2">
             <Label htmlFor="fp-email" className="text-sm font-semibold text-ink-60">
-              Email
+              {t("common.email")}
             </Label>
             <Input
               id="fp-email"
               type="email"
               autoComplete="email"
               className={authInputClass}
-              placeholder="you@venue.com"
+              placeholder={t("auth.login.emailPlaceholder")}
               aria-invalid={Boolean(errors.email)}
               {...register("email")}
             />
@@ -84,10 +82,7 @@ export function ForgotPasswordPage() {
             ) : null}
           </div>
 
-          <p className="text-xs leading-relaxed text-ink-40">
-            For your security we always show the same confirmation message — we never reveal
-            whether an email is registered.
-          </p>
+          <p className="text-xs leading-relaxed text-ink-40">{t("reset.forgot.securityNote")}</p>
 
           <Button
             type="submit"
@@ -101,12 +96,12 @@ export function ForgotPasswordPage() {
                   className="size-5 animate-spin rounded-full border-2 border-ink border-t-transparent"
                   aria-hidden
                 />
-                Sending code…
+                {t("reset.forgot.sending")}
               </>
             ) : (
               <>
-                Continue
-                <ArrowRight className="size-5 shrink-0" strokeWidth={2} aria-hidden />
+                {t("common.continue")}
+                <ForwardArrow className="size-5 shrink-0" strokeWidth={2} aria-hidden />
               </>
             )}
           </Button>
@@ -118,8 +113,8 @@ export function ForgotPasswordPage() {
             className="w-full gap-2 text-ink-60 hover:text-ink"
           >
             <Link to="/login">
-              <ArrowLeft className="size-4" strokeWidth={2} aria-hidden />
-              Back to sign in
+              <BackArrow className="size-4" strokeWidth={2} aria-hidden />
+              {t("reset.forgot.backToSignIn")}
             </Link>
           </Button>
         </form>

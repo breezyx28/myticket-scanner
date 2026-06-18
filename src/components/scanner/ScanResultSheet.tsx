@@ -1,5 +1,7 @@
 import { AlertTriangle, CheckCircle2, Clock, XCircle } from "lucide-react"
+import type { TFunction } from "i18next"
 import { useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -22,6 +24,7 @@ interface ScanResultSheetProps {
 }
 
 export function ScanResultSheet({ result, loading, onDismiss }: ScanResultSheetProps) {
+  const { t } = useTranslation()
   const open = Boolean(result) || Boolean(loading)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -37,9 +40,9 @@ export function ScanResultSheet({ result, loading, onDismiss }: ScanResultSheetP
   }, [loading, result, onDismiss])
 
   const liveMessage = loading
-    ? "Validating ticket."
+    ? t("scanner.result.validating")
     : result
-      ? summarize(result)
+      ? summarize(result, t)
       : ""
 
   return (
@@ -69,16 +72,16 @@ export function ScanResultSheet({ result, loading, onDismiss }: ScanResultSheetP
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-white">
                   <span className="size-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Checking ticket…
+                  {t("scanner.result.checking")}
                 </DialogTitle>
                 <DialogDescription className="text-white/70">
-                  Please wait while we validate this scan.
+                  {t("scanner.result.checkingDescription")}
                 </DialogDescription>
               </DialogHeader>
             </>
           ) : result ? (
             <>
-              <DialogHeader className="gap-4 text-left">
+              <DialogHeader className="gap-4 text-start">
                 <div className="flex items-start gap-3">
                   {result.kind === "success" ? (
                     <CheckCircle2 className="size-10 shrink-0" strokeWidth={2} aria-hidden />
@@ -94,7 +97,7 @@ export function ScanResultSheet({ result, loading, onDismiss }: ScanResultSheetP
                   ) : null}
                   <div className="min-w-0">
                     <DialogTitle className="text-2xl font-extrabold tracking-tight">
-                      {titleFor(result)}
+                      {titleFor(result, t)}
                     </DialogTitle>
                     <DialogDescription
                       className={cn(
@@ -105,7 +108,7 @@ export function ScanResultSheet({ result, loading, onDismiss }: ScanResultSheetP
                         result.kind === "expired" && "text-ink-20",
                       )}
                     >
-                      {bodyFor(result)}
+                      {bodyFor(result, t)}
                     </DialogDescription>
                   </div>
                 </div>
@@ -113,25 +116,35 @@ export function ScanResultSheet({ result, loading, onDismiss }: ScanResultSheetP
               {result.kind === "success" ? (
                 <dl className="grid grid-cols-1 gap-3 rounded-2xl bg-black/10 p-4 font-mono text-sm sm:grid-cols-2">
                   <div>
-                    <dt className="text-xs font-sans font-semibold uppercase opacity-70">Guest</dt>
+                    <dt className="font-sans text-xs font-semibold uppercase opacity-70">
+                      {t("common.guest")}
+                    </dt>
                     <dd className="font-sans text-base font-bold">{result.holderName}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-sans font-semibold uppercase opacity-70">Event</dt>
+                    <dt className="font-sans text-xs font-semibold uppercase opacity-70">
+                      {t("common.event")}
+                    </dt>
                     <dd className="font-sans text-base font-semibold">{result.eventName}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-sans font-semibold uppercase opacity-70">Venue</dt>
+                    <dt className="font-sans text-xs font-semibold uppercase opacity-70">
+                      {t("common.venue")}
+                    </dt>
                     <dd className="font-sans font-medium">{result.venue}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-sans font-semibold uppercase opacity-70">Seat</dt>
+                    <dt className="font-sans text-xs font-semibold uppercase opacity-70">
+                      {t("common.seat")}
+                    </dt>
                     <dd className="text-lg font-bold tracking-tight">
-                      Sec {result.section} · {result.seat}
+                      {t("common.sectionSeat", { section: result.section, seat: result.seat })}
                     </dd>
                   </div>
                   <div className="sm:col-span-2">
-                    <dt className="text-xs font-sans font-semibold uppercase opacity-70">Ticket type</dt>
+                    <dt className="font-sans text-xs font-semibold uppercase opacity-70">
+                      {t("common.ticketType")}
+                    </dt>
                     <dd className="font-sans text-base font-semibold">{result.ticketType}</dd>
                   </div>
                 </dl>
@@ -144,9 +157,9 @@ export function ScanResultSheet({ result, loading, onDismiss }: ScanResultSheetP
                   className="w-full bg-ink text-white hover:bg-ink-80"
                   onClick={() => onDismiss()}
                 >
-                  Scan next
+                  {t("scanner.result.scanNext")}
                 </Button>
-                <p className="text-center text-xs opacity-70">This dialog closes automatically.</p>
+                <p className="text-center text-xs opacity-70">{t("scanner.result.autoClose")}</p>
               </DialogFooter>
             </>
           ) : null}
@@ -156,29 +169,32 @@ export function ScanResultSheet({ result, loading, onDismiss }: ScanResultSheetP
   )
 }
 
-function titleFor(r: ScanResultDetail): string {
+function titleFor(r: ScanResultDetail, t: TFunction): string {
   switch (r.kind) {
     case "success":
-      return "Entry granted"
+      return t("scanner.result.entryGranted")
     case "failed":
-      return "Entry denied"
+      return t("scanner.result.entryDenied")
     case "used":
-      return "Already used"
+      return t("scanner.result.alreadyUsed")
     case "expired":
-      return "Expired"
+      return t("scanner.result.expired")
     default:
       return ""
   }
 }
 
-function bodyFor(r: ScanResultDetail): string {
+function bodyFor(r: ScanResultDetail, t: TFunction): string {
   switch (r.kind) {
     case "success":
-      return "Ticket is valid for this event."
+      return t("scanner.result.validBody")
     case "failed":
       return r.message
     case "used":
-      return `${r.holderName} — this ticket was already scanned for ${r.eventName}.`
+      return t("scanner.result.usedBody", {
+        holderName: r.holderName,
+        eventName: r.eventName,
+      })
     case "expired":
       return r.message
     default:
@@ -186,9 +202,9 @@ function bodyFor(r: ScanResultDetail): string {
   }
 }
 
-function summarize(r: ScanResultDetail): string {
-  if (r.kind === "success") return `Entry granted for ${r.holderName}.`
-  if (r.kind === "failed") return `Entry denied. ${r.message}`
-  if (r.kind === "used") return `Already used ticket for ${r.holderName}.`
+function summarize(r: ScanResultDetail, t: TFunction): string {
+  if (r.kind === "success") return t("scanner.result.srSuccess", { holderName: r.holderName })
+  if (r.kind === "failed") return t("scanner.result.srFailed", { message: r.message })
+  if (r.kind === "used") return t("scanner.result.srUsed", { holderName: r.holderName })
   return r.message
 }

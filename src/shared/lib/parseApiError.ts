@@ -1,5 +1,6 @@
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query"
 
+import i18n from "@/i18n/config"
 import { apiErrorSchema } from "@/shared/schemas/common"
 
 export interface ParsedApiError {
@@ -14,19 +15,21 @@ export interface ParsedApiError {
 }
 
 export function parseApiError(error: unknown): ParsedApiError {
+  const t = i18n.t.bind(i18n)
+
   if (!error || typeof error !== "object" || !("status" in error)) {
-    return { status: "CUSTOM_ERROR", message: "Something went wrong. Please try again." }
+    return { status: "CUSTOM_ERROR", message: t("errors.generic") }
   }
 
   const fetchError = error as FetchBaseQueryError
   const status = fetchError.status
 
   if (status === "FETCH_ERROR") {
-    return { status, message: "Network error. Check your connection and try again." }
+    return { status, message: t("errors.network") }
   }
 
   if (typeof status !== "number") {
-    return { status, message: "Request failed." }
+    return { status, message: t("errors.requestFailed") }
   }
 
   const data = "data" in fetchError ? fetchError.data : undefined
@@ -34,14 +37,14 @@ export function parseApiError(error: unknown): ParsedApiError {
   const message = parsed.success
     ? parsed.data.message
     : status === 429
-      ? "Too many attempts. Please wait and try again."
+      ? t("errors.tooManyAttempts")
       : status === 401
-        ? "Session expired. Please sign in again."
+        ? t("errors.sessionExpired")
         : status === 403
-          ? "You do not have permission for this action."
+          ? t("errors.forbidden")
           : status === 422
-            ? "The given data was invalid."
-            : "Request failed."
+            ? t("errors.validationFailed")
+            : t("errors.requestFailed")
 
   return {
     status,

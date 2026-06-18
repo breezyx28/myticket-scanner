@@ -1,18 +1,23 @@
 import { Check } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import { cn } from "@/lib/utils"
 
-const STEPS = [
-  { step: 1, label: "Email" },
-  { step: 2, label: "Code" },
-  { step: 3, label: "Password" },
-] as const
+const STEPS = [1, 2, 3] as const
 
 export function PasswordResetStepper({ currentStep }: { currentStep: 1 | 2 | 3 }) {
+  const { t } = useTranslation()
+
+  const labels: Record<(typeof STEPS)[number], string> = {
+    1: t("reset.stepEmail"),
+    2: t("reset.stepCode"),
+    3: t("reset.stepPassword"),
+  }
+
   return (
-    <nav aria-label="Password reset progress" className="mb-1">
+    <nav aria-label={t("reset.stepperAria")} className="mb-1">
       <ol className="flex items-center gap-2">
-        {STEPS.map(({ step, label }, index) => {
+        {STEPS.map((step, index) => {
           const done = step < currentStep
           const active = step === currentStep
           return (
@@ -35,14 +40,14 @@ export function PasswordResetStepper({ currentStep }: { currentStep: 1 | 2 | 3 }
                     active ? "text-ink" : "text-ink-40",
                   )}
                 >
-                  {label}
+                  {labels[step]}
                 </span>
               </div>
               {index < STEPS.length - 1 ? (
-                <span
+                <div
                   className={cn(
-                    "mb-5 h-px flex-1 min-w-[0.75rem]",
-                    step < currentStep ? "bg-lemon-dark/60" : "bg-ink-10",
+                    "mb-5 h-px min-w-2 flex-1",
+                    done ? "bg-lemon" : "bg-ink-10",
                   )}
                   aria-hidden
                 />

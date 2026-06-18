@@ -2,6 +2,14 @@
 
 Gate scanner web app: sign-in against the Scanner API, event selection from assignments, QR camera scanning with manual entry fallback, and live ticket validation via `POST /scans`.
 
+## Localization
+
+Default language is **Arabic** (`ar`). Use the language switcher in the auth header or scanner toolbar to change language.
+
+- UI strings: `i18next` + `react-i18next` (`src/i18n/locales/en.json`, `ar.json`)
+- Direction: `dir="rtl"` for Arabic, `dir="ltr"` for English (set on `<html>`)
+- API: every request sends `Accept-Language: ar` or `Accept-Language: en` via RTK Query and Echo auth
+
 ## Run locally
 
 ```bash
@@ -68,4 +76,4 @@ Scans from other devices on the same account show as a toast; the header shows *
 
 ## Stack
 
-Vite 7, React 19, TypeScript, Redux Toolkit + RTK Query, Zod, react-hook-form, Tailwind CSS v4, Radix primitives, `html5-qrcode`, Laravel Echo + Reverb (optional), Fontsource, React Router 7.
+Vite 7, React 19, TypeScript, Redux Toolkit + RTK Query, Zod, i18next, react-hook-form, Tailwind CSS v4, Radix primitives, `html5-qrcode`, Laravel Echo + Reverb (optional), Fontsource, React Router 7.

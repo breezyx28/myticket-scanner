@@ -2,6 +2,7 @@ import Echo from "laravel-echo"
 import Pusher from "pusher-js"
 
 import { getBroadcastingAuthUrl, getReverbConfig, isReverbConfigured } from "@/config/reverb"
+import { getAcceptLanguageHeader } from "@/i18n/config"
 
 declare global {
   interface Window {
@@ -11,11 +12,14 @@ declare global {
 
 let echoInstance: Echo<"reverb"> | null = null
 let echoToken: string | null = null
+let echoLanguage: string | null = null
 
 export function getEcho(token: string): Echo<"reverb"> | null {
   if (!isReverbConfigured()) return null
 
-  if (echoInstance && echoToken === token) {
+  const language = getAcceptLanguageHeader()
+
+  if (echoInstance && echoToken === token && echoLanguage === language) {
     return echoInstance
   }
 
@@ -23,6 +27,7 @@ export function getEcho(token: string): Echo<"reverb"> | null {
 
   window.Pusher = Pusher
   echoToken = token
+  echoLanguage = language
 
   const reverb = getReverbConfig()
 
@@ -39,6 +44,7 @@ export function getEcho(token: string): Echo<"reverb"> | null {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
+        "Accept-Language": getAcceptLanguageHeader(),
       },
     },
   })
@@ -51,6 +57,7 @@ export function disconnectEcho(): void {
     echoInstance.disconnect()
     echoInstance = null
     echoToken = null
+    echoLanguage = null
   }
 }
 

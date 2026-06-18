@@ -1,8 +1,10 @@
 import { Camera, CameraOff } from "lucide-react"
 import { useCallback, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { useAppSelector } from "@/app/hooks"
+import { LanguageSwitcher } from "@/components/common/LanguageSwitcher"
 import { EventPicker } from "@/components/scanner/EventPicker"
 import { ManualEntryDialog } from "@/components/scanner/ManualEntryDialog"
 import { RealtimeConnectionBadge } from "@/components/scanner/RealtimeConnectionBadge"
@@ -25,6 +27,7 @@ import { parseApiError } from "@/shared/lib/parseApiError"
 import { cn } from "@/lib/utils"
 
 export function ScannerPage() {
+  const { t } = useTranslation()
   const selectedEventId = useAppSelector(selectSelectedEventId)
   const deviceId = useAppSelector(selectDeviceId)
   const assignment = useAppSelector(selectSelectedAssignment)
@@ -37,11 +40,10 @@ export function ScannerPage() {
 
   const { connectionState } = useScannerScanRealtime({
     onRemoteScan: (row) => {
-      toast.message(formatRemoteScanToast(row), { duration: 4500 })
+      toast.message(formatRemoteScanToast(row, t), { duration: 4500 })
     },
   })
 
-  /** Held from first decode until result sheet is dismissed — prevents repeat API calls. */
   const scanSessionLocked = useRef(false)
 
   const scannerPaused = loading || Boolean(result)
@@ -52,22 +54,22 @@ export function ScannerPage() {
       if (scanSessionLocked.current) return
 
       if (selectedEventId == null) {
-        toast.error("Select an event first.")
+        toast.error(t("scanner.toasts.selectEvent"))
         return
       }
       if (deviceId == null) {
-        toast.error("Device not registered. Sign in again.")
+        toast.error(t("scanner.toasts.deviceNotRegistered"))
         return
       }
 
       const parsed = parseTicketCode(raw)
       if (!parsed.ticketCode) {
-        toast.error("Invalid QR — no ticket code found.")
+        toast.error(t("scanner.toasts.invalidQr"))
         return
       }
 
       if (parsed.eventId != null && parsed.eventId !== selectedEventId) {
-        toast.error("This ticket is for a different event.")
+        toast.error(t("scanner.toasts.wrongEvent"))
         return
       }
 
@@ -83,7 +85,7 @@ export function ScannerPage() {
           signature: parsed.signature,
         }).unwrap()
 
-        setResult(mapScanLogToResult(log, assignment))
+        setResult(mapScanLogToResult(log, assignment, t))
       } catch (error) {
         const apiErr = parseApiError(error)
         setResult({
@@ -94,7 +96,7 @@ export function ScannerPage() {
         setLoading(false)
       }
     },
-    [assignment, createScan, deviceId, selectedEventId],
+    [assignment, createScan, deviceId, selectedEventId, t],
   )
 
   const dismiss = useCallback(() => {
@@ -122,17 +124,17 @@ export function ScannerPage() {
         className={cn(toolButtonClass, "gap-2")}
         onClick={toggleCamera}
         aria-pressed={cameraOn}
-        aria-label={cameraOn ? "Turn camera off" : "Turn camera on"}
+        aria-label={cameraOn ? t("scanner.camera.offAria") : t("scanner.camera.onAria")}
       >
         {cameraOn ? (
           <>
             <CameraOff className="size-4 shrink-0" strokeWidth={2} aria-hidden />
-            <span className="hidden sm:inline">Camera off</span>
+            <span className="hidden sm:inline">{t("scanner.camera.off")}</span>
           </>
         ) : (
           <>
             <Camera className="size-4 shrink-0" strokeWidth={2} aria-hidden />
-            <span className="hidden sm:inline">Camera on</span>
+            <span className="hidden sm:inline">{t("scanner.camera.on")}</span>
           </>
         )}
       </Button>
@@ -144,6 +146,7 @@ export function ScannerPage() {
     <ScannerLayout
       toolbar={
         <div className="flex min-w-0 items-center gap-2">
+          <LanguageSwitcher variant="dark" className="hidden sm:inline-flex" />
           <RealtimeConnectionBadge state={connectionState} className="hidden sm:inline-flex" />
           <div className="flex min-w-0 max-w-[min(100%,12.5rem)] items-center sm:max-w-[240px]">
             <EventPicker />
@@ -167,10 +170,10 @@ export function ScannerPage() {
                 onClick={() => {
                   setCamError(null)
                   setCameraOn(true)
-                  toast.message("Retrying camera…")
+                  toast.message(t("scanner.camera.retrying"))
                 }}
               >
-                Retry camera
+                {t("scanner.camera.retry")}
               </Button>
             </div>
           </div>
@@ -181,6 +184,7 @@ export function ScannerPage() {
               "sm:px-4",
             )}
           >
+            <LanguageSwitcher variant="dark" className="sm:hidden" />
             {toolbarActions}
           </div>
         )}
@@ -203,9 +207,9 @@ export function ScannerPage() {
                     <CameraOff className="size-8 text-white/70" strokeWidth={1.75} aria-hidden />
                   </div>
                   <div className="max-w-sm space-y-2">
-                    <p className="text-base font-semibold text-white">Camera is off</p>
+                    <p className="text-base font-semibold text-white">{t("scanner.camera.isOff")}</p>
                     <p className="text-sm leading-relaxed text-white/60">
-                      Turn the camera back on to scan QR codes, or use manual entry for ticket codes.
+                      {t("scanner.camera.isOffDescription")}
                     </p>
                   </div>
                   <Button
@@ -215,13 +219,13 @@ export function ScannerPage() {
                     onClick={() => setCameraOn(true)}
                   >
                     <Camera className="size-4" strokeWidth={2} aria-hidden />
-                    Turn camera on
+                    {t("scanner.camera.turnOn")}
                   </Button>
                 </>
               )}
               {camError ? (
                 <p className="max-w-sm text-sm leading-relaxed text-white/65">
-                  Fix camera permissions above, or enter a ticket code manually.
+                  {t("scanner.camera.fixPermissions")}
                 </p>
               ) : null}
               <ManualEntryDialog

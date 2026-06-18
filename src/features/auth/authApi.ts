@@ -1,8 +1,9 @@
+import i18n from "@/i18n/config"
 import { baseApi } from "@/shared/api/baseApi"
 import { parseWithSchema } from "@/shared/lib/parseWithSchema"
 import { messageResponseSchema } from "@/shared/schemas/common"
 import {
-  loginRequestSchema,
+  createLoginRequestSchema,
   loginResponseSchema,
   type LoginRequest,
   type LoginResponse,
@@ -22,7 +23,7 @@ export const authApi = baseApi.injectEndpoints({
       query: (body) => ({
         url: "/auth/login",
         method: "POST",
-        body: loginRequestSchema.parse(body),
+        body: createLoginRequestSchema(i18n.t).parse(body),
       }),
       transformResponse: (response: unknown) =>
         parseWithSchema(loginResponseSchema, response, "login"),

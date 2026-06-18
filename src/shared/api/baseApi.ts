@@ -8,6 +8,7 @@ import {
 
 import { getApiBaseUrl } from "@/config/env"
 import { clearAuth, selectToken } from "@/features/auth/authSlice"
+import { getAcceptLanguageHeader } from "@/i18n/config"
 import type { RootState } from "@/app/store"
 
 const rawBaseQuery = fetchBaseQuery({
@@ -18,6 +19,7 @@ const rawBaseQuery = fetchBaseQuery({
       headers.set("Authorization", `Bearer ${token}`)
     }
     headers.set("Accept", "application/json")
+    headers.set("Accept-Language", getAcceptLanguageHeader())
     return headers
   },
 })
