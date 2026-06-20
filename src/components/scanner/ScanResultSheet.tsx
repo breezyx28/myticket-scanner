@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { ScanResultDetail } from "@/features/scan/types"
+import { hapticScanFailure, hapticScanSuccess } from "@/platform/haptics"
 import { cn } from "@/lib/utils"
 
 const DISMISS_MS = 3200
@@ -30,9 +31,7 @@ export function ScanResultSheet({ result, loading, onDismiss }: ScanResultSheetP
 
   useEffect(() => {
     if (loading || !result) return
-    if (typeof navigator !== "undefined" && navigator.vibrate) {
-      navigator.vibrate(result.kind === "success" ? [40, 30, 40] : 80)
-    }
+    void (result.kind === "success" ? hapticScanSuccess() : hapticScanFailure())
     timerRef.current = setTimeout(() => onDismiss(), DISMISS_MS)
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)

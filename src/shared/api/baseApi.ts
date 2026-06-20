@@ -7,9 +7,10 @@ import {
 } from "@reduxjs/toolkit/query/react"
 
 import { getApiBaseUrl } from "@/config/env"
-import { clearAuth, selectToken } from "@/features/auth/authSlice"
+import { clearAuthSession } from "@/features/auth/clearAuthSession"
+import { selectToken } from "@/features/auth/authSlice"
 import { getAcceptLanguageHeader } from "@/i18n/config"
-import type { RootState } from "@/app/store"
+import type { AppDispatch, RootState } from "@/app/store"
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: getApiBaseUrl(),
@@ -38,7 +39,7 @@ export const baseQueryWithReauth: BaseQueryFn<
       url.includes("/auth/password/forgot") ||
       url.includes("/auth/password/reset")
     if (!isPublicAuth) {
-      api.dispatch(clearAuth())
+      void clearAuthSession(api.dispatch as AppDispatch)
     }
   }
 

@@ -15,8 +15,8 @@ export function AuthLayout({
   const { t } = useTranslation()
 
   return (
-    <div className="flex min-h-dvh flex-col bg-white">
-      <header className="flex shrink-0 items-center justify-between px-4 pt-8 pb-4 sm:pt-10">
+    <div className="flex h-dvh max-h-dvh min-h-0 flex-col overflow-hidden bg-white">
+      <header className="flex shrink-0 items-center justify-between px-4 pb-4 pt-[max(2rem,env(safe-area-inset-top))] sm:px-6 sm:pb-4 sm:pt-[max(2.5rem,env(safe-area-inset-top))]">
         <Link
           to="/login"
           className="group inline-flex items-center gap-3 rounded-2xl px-2 py-1 transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:outline-none"
@@ -41,11 +41,11 @@ export function AuthLayout({
 
       <main
         className={cn(
-          "mx-auto flex w-full max-w-[440px] flex-1 flex-col justify-center px-4 pb-10 pt-2 sm:px-6 sm:pb-14",
+          "mx-auto flex w-full max-w-[440px] min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] sm:px-6",
           className,
         )}
       >
-        {children}
+        <div className="flex flex-1 flex-col justify-center py-4 sm:py-6">{children}</div>
       </main>
     </div>
   )

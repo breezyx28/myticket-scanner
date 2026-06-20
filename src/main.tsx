@@ -19,8 +19,11 @@ import { AppStoreProvider } from "@/app/provider"
 import { AppToaster } from "@/components/common/AppToaster"
 import i18n from "@/i18n/config"
 import { LocaleProvider } from "@/i18n/LocaleProvider"
+import { initNativeShell } from "@/platform/nativeBootstrap"
 import App from "./App.tsx"
 import "./index.css"
+
+void initNativeShell()
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

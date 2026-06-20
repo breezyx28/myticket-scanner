@@ -1,13 +1,24 @@
-import { QrCode, ShieldOff } from "lucide-react"
-import { useState } from "react"
+import { QrCode, Fingerprint, ShieldOff } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, Navigate, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 import { useAppDispatch, useAppSelector } from "@/app/hooks"
 import { useLoginMutation } from "@/features/auth/authApi"
+import {
+  authenticateWithBiometric,
+  enableBiometricLogin,
+  isBiometricAvailable,
+  isBiometricLoginEnabled,
+} from "@/features/auth/biometricAuth"
 import { handleLoginResponse } from "@/features/auth/bootstrapSession"
+import { setCredentials } from "@/features/auth/authSlice"
 import { selectIsAuthenticated } from "@/features/auth/authSlice"
+import { loadSessionAsync } from "@/features/auth/session"
+import { restoreScannerSession } from "@/features/auth/restoreSession"
+import { isLoginSuccess } from "@/shared/schemas/authGuards"
+import { isNativePlatform } from "@/platform/detect"
 import { AuthFormCard } from "@/components/auth/AuthFormCard"
 import { authInputClass } from "@/components/auth/authFormStyles"
 import { ForwardArrow } from "@/components/common/DirectionalIcons"
@@ -28,6 +39,63 @@ export function LoginPage() {
   const isAuthenticated = useAppSelector(selectIsAuthenticated)
   const [login, { isLoading }] = useLoginMutation()
   const [accessDenied, setAccessDenied] = useState(false)
+  const [biometricReady, setBiometricReady] = useState(false)
+  const [biometricLoading, setBiometricLoading] = useState(false)
+
+  const handleBiometricSignIn = useCallback(
+    async (silent = false) => {
+      if (!isNativePlatform()) return
+      setBiometricLoading(true)
+      try {
+        const token = await authenticateWithBiometric({
+          reason: t("native.biometric.promptReason"),
+          cancelTitle: t("native.biometric.cancel"),
+          title: t("native.biometric.signIn"),
+        })
+        if (!token) {
+          if (!silent) toast.error(t("native.biometric.failed"))
+          return
+        }
+
+        const stored = await loadSessionAsync()
+        if (!stored || stored.token !== token) {
+          if (!silent) toast.error(t("native.biometric.failed"))
+          return
+        }
+
+        dispatch(
+          setCredentials({
+            token: stored.token,
+            user: {
+              id: stored.userId,
+              email: stored.email,
+              full_name: stored.fullName,
+              role: "scanner",
+            },
+          }),
+        )
+        await restoreScannerSession(dispatch)
+        navigate("/", { replace: true })
+      } finally {
+        setBiometricLoading(false)
+      }
+    },
+    [dispatch, navigate, t],
+  )
+
+  useEffect(() => {
+    if (!isNativePlatform()) return
+    void (async () => {
+      const [enabled, available] = await Promise.all([
+        isBiometricLoginEnabled(),
+        isBiometricAvailable(),
+      ])
+      setBiometricReady(enabled && available)
+      if (enabled && available) {
+        void handleBiometricSignIn(true)
+      }
+    })()
+  }, [handleBiometricSignIn])
 
   const {
     register,
@@ -57,6 +125,11 @@ export function LoginPage() {
           toast.error(boot.message)
         }
         return
+      }
+
+      if (isNativePlatform() && isLoginSuccess(response)) {
+        const enabled = await enableBiometricLogin()
+        setBiometricReady(enabled)
       }
 
       navigate("/", { replace: true })
@@ -145,6 +218,20 @@ export function LoginPage() {
               </p>
             ) : null}
           </div>
+
+          {biometricReady ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="w-full gap-2.5 border-ink-10 bg-white active:scale-[0.98]"
+              disabled={biometricLoading || isLoading}
+              onClick={() => void handleBiometricSignIn(false)}
+            >
+              <Fingerprint className="size-5 shrink-0" strokeWidth={2} aria-hidden />
+              {t("native.biometric.signIn")}
+            </Button>
+          ) : null}
 
           <Button
             type="submit"

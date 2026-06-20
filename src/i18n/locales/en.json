@@ -22,6 +22,24 @@
     "notAvailable": "—",
     "toastContainerAria": "Notifications"
   },
+  "native": {
+    "install": {
+      "title": "Install the scanner app",
+      "description": "Get faster camera scanning, fingerprint sign-in, and live alerts with the MyTicket Scanner app for Android.",
+      "download": "Download APK",
+      "verifying": "Verifying download…",
+      "downloadFailed": "Could not download the app. Try again later.",
+      "integrityFailed": "Download verification failed. Do not install this file.",
+      "steps": "After download, open the file and allow install from your browser if prompted.",
+      "dismiss": "Continue in browser"
+    },
+    "biometric": {
+      "signIn": "Sign in with fingerprint",
+      "promptReason": "Confirm your identity to open the scanner",
+      "cancel": "Use password instead",
+      "failed": "Fingerprint sign-in failed. Use your password."
+    }
+  },
   "language": {
     "switchLabel": "Language",
     "en": "English",

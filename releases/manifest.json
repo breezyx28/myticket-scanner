@@ -1,0 +1,10 @@
+{
+  "name": "MyTicket Scanner",
+  "nameAr": "ماسح MyTicket",
+  "packageId": "com.myticket.scanner",
+  "version": "0.0.1",
+  "sha256": "4c915e537ee8d2d8068c0d9817b3fb657b3310f8f51ef172cdc445874fc40a58",
+  "url": "./scanner-latest.apk",
+  "icon": "./icon-512.png",
+  "releasedAt": "2026-06-19T22:21:38Z"
+}

@@ -24,11 +24,43 @@ jobs:
           node-version: "22"
           cache: npm
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Install dependencies
         run: npm install
 
-      - name: Build
-        run: npm run build
+      - name: Prepare Android keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/myticket-scanner-release.jks
+            cat > android/keystore.properties <<EOF
+          storeFile=myticket-scanner-release.jks
+          storePassword=${ANDROID_KEYSTORE_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          keyPassword=${ANDROID_KEY_PASSWORD}
+          EOF
+          fi
+
+      - name: Build web and Android APK
+        run: |
+          if [ -f android/keystore.properties ]; then
+            bash scripts/build-release-apk.sh
+          else
+            npm run build
+            npx cap sync android
+          fi
 
       - name: Start SSH agent
         uses: webfactory/ssh-agent@v0.9.0
@@ -47,3 +79,6 @@ jobs:
           rsync -avz --delete \
             --exclude '.git' \
             dist/ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${DEPLOY_PATH}/"
+          if [ -d releases ] && [ -f releases/scanner-latest.apk ]; then
+            rsync -avz releases/ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${DEPLOY_PATH}/releases/"
+          fi

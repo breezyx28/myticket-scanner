@@ -73,7 +73,71 @@ Scans from other devices on the same account show as a toast; the header shows *
 - `npm run build` — Typecheck + production build
 - `npm run lint` — ESLint
 - `npm run preview` — Preview production build
+- `npm run build:android` — Web build + `cap sync android`
+- `npm run open:android` — Open Android Studio
+- `npm run apk:release` — Build signed release APK + `releases/manifest.json` (requires keystore)
+
+## Web vs Android
+
+The same React codebase runs in the browser and in a Capacitor Android WebView.
+
+| Runtime | Session storage | Camera | Biometric login |
+|---------|-----------------|--------|-----------------|
+| Web browser | `sessionStorage` | `html5-qrcode` | Not available |
+| Android app | Secure storage + Preferences | ML Kit barcode | Fingerprint after first password login |
+| Android mobile web | `sessionStorage` | `html5-qrcode` | Install prompt → self-hosted APK |
+
+Web routes, layouts, and flows are unchanged. Native-only behavior is gated with `Capacitor.isNativePlatform()`.
+
+### Android development
+
+```bash
+npm install
+npm run build:android
+npm run open:android
+```
+
+Run on a device or emulator from Android Studio. Debug builds use the debug keystore automatically.
+
+**SDK path:** Gradle needs `android/local.properties` with `sdk.dir` pointing at your Android SDK (usually `C:\Users\<you>\AppData\Local\Android\Sdk` on Windows). Copy `android/local.properties.example` if missing. This file is gitignored.
+
+### Release APK (local)
+
+**App branding:** Source icons live in `assets/icon-only.png` and `assets/splash.png`. Regenerate Android mipmaps with `npm run assets:generate` after changing them.
+
+1. Generate a release keystore (once — **back up the `.jks` file and passwords**):
+
+   ```bash
+   keytool -genkeypair -v -keystore android/myticket-scanner-release.jks \
+     -alias myticket-scanner -keyalg RSA -keysize 2048 -validity 10000
+   ```
+
+2. Copy `android/keystore.properties.example` → `android/keystore.properties` and fill in paths/passwords.
+
+3. Build:
+
+   ```bash
+   npm run apk:release
+   ```
+
+Output:
+
+- `releases/scanner-latest.apk` — sideload / install prompt target
+- `releases/scanner-{version}.apk` — versioned archive
+- `releases/manifest.json` — name, package id, version, icon URL, SHA-256, release timestamp
+- `releases/icon-512.png` — install prompt / web icon
+
+### CI / VPS deploy
+
+When GitHub Actions secrets are set (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`), the deploy workflow builds a signed APK and rsyncs `dist/` plus `releases/` to the VPS. Mobile web users get an install dialog linking to `/releases/scanner-latest.apk` on the same origin.
+
+### Venue install (sideload)
+
+1. Open the scanner site on Android Chrome (or download the APK from `/releases/scanner-latest.apk`).
+2. Allow “Install unknown apps” for the browser or file manager if prompted.
+3. Install and open **MyTicket Scanner**.
+4. Sign in with password once; enable fingerprint unlock on subsequent launches.
 
 ## Stack
 
-Vite 7, React 19, TypeScript, Redux Toolkit + RTK Query, Zod, i18next, react-hook-form, Tailwind CSS v4, Radix primitives, `html5-qrcode`, Laravel Echo + Reverb (optional), Fontsource, React Router 7.
+Vite 7, React 19, TypeScript, Redux Toolkit + RTK Query, Zod, i18next, react-hook-form, Tailwind CSS v4, Radix primitives, `html5-qrcode`, Capacitor 8 (Android), Laravel Echo + Reverb (optional), Fontsource, React Router 7.

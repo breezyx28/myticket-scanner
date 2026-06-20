@@ -6,8 +6,8 @@ import { toast } from "sonner"
 
 import { useAppDispatch, useAppSelector } from "@/app/hooks"
 import { useLogoutMutation } from "@/features/auth/authApi"
+import { clearAuthSession } from "@/features/auth/clearAuthSession"
 import {
-  clearAuth,
   selectSelectedAssignment,
   selectUser,
 } from "@/features/auth/authSlice"
@@ -46,7 +46,7 @@ export function ScannerLayout({
         toast.error(parsed.message)
       }
     } finally {
-      dispatch(clearAuth())
+      await clearAuthSession(dispatch)
       navigate("/login", { replace: true })
     }
   }

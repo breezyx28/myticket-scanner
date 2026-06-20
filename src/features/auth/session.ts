@@ -1,3 +1,10 @@
+import { isNativePlatform } from "@/platform/detect"
+import {
+  clearSessionAsync,
+  loadSessionAsync,
+  saveSessionAsync,
+} from "@/platform/storage/nativeSessionStorage"
+
 export const SESSION_STORAGE_KEY = "myticket-scanner-session-v1"
 
 export interface StoredSession {
@@ -10,6 +17,8 @@ export interface StoredSession {
 }
 
 export function loadSession(): StoredSession | null {
+  if (isNativePlatform()) return null
+
   try {
     const raw = sessionStorage.getItem(SESSION_STORAGE_KEY)
     if (!raw) return null
@@ -22,9 +31,27 @@ export function loadSession(): StoredSession | null {
 }
 
 export function saveSession(data: StoredSession): void {
+  if (isNativePlatform()) {
+    void saveSessionAsync(data)
+    return
+  }
   sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(data))
 }
 
-export function clearSession(): void {
+export async function clearSessionAwaitable(): Promise<void> {
+  if (isNativePlatform()) {
+    await clearSessionAsync()
+    return
+  }
   sessionStorage.removeItem(SESSION_STORAGE_KEY)
 }
+
+export function clearSession(): void {
+  if (isNativePlatform()) {
+    void clearSessionAsync()
+    return
+  }
+  sessionStorage.removeItem(SESSION_STORAGE_KEY)
+}
+
+export { loadSessionAsync }

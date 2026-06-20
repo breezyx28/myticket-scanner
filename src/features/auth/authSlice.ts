@@ -3,9 +3,11 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 import type { AuthUser } from "@/shared/schemas/auth"
 import type { Assignment } from "@/shared/schemas/scanner"
 
+import { isNativePlatform } from "@/platform/detect"
+
 import { clearSession, loadSession, saveSession, type StoredSession } from "./session"
 
-export type AuthStatus = "idle" | "loading" | "authenticated"
+export type AuthStatus = "idle" | "loading" | "authenticated" | "hydrating"
 
 export interface AuthState {
   token: string | null
@@ -34,7 +36,7 @@ const initialState: AuthState = {
   scannerAccountId: null,
   selectedEventId: stored?.selectedEventId ?? null,
   assignments: [],
-  status: stored?.token ? "loading" : "idle",
+  status: stored?.token ? "loading" : isNativePlatform() ? "hydrating" : "idle",
   bootstrapError: null,
 }
 
@@ -97,6 +99,25 @@ export const authSlice = createSlice({
       state.bootstrapError = action.payload
       state.status = "idle"
     },
+    rehydrateSession(state, action: PayloadAction<StoredSession>) {
+      const stored = action.payload
+      state.token = stored.token
+      state.user = {
+        id: stored.userId,
+        email: stored.email,
+        full_name: stored.fullName,
+        role: "scanner",
+      }
+      state.deviceId = stored.deviceId
+      state.selectedEventId = stored.selectedEventId
+      state.status = "loading"
+      state.bootstrapError = null
+    },
+    setHydrationComplete(state) {
+      if (state.status === "hydrating") {
+        state.status = "idle"
+      }
+    },
     clearAuth(state) {
       state.token = null
       state.user = null
@@ -106,7 +127,6 @@ export const authSlice = createSlice({
       state.assignments = []
       state.status = "idle"
       state.bootstrapError = null
-      clearSession()
     },
   },
 })
@@ -119,6 +139,8 @@ export const {
   setSelectedEventId,
   setBootstrapLoading,
   setBootstrapError,
+  rehydrateSession,
+  setHydrationComplete,
   clearAuth,
 } = authSlice.actions
 

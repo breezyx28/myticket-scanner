@@ -3,8 +3,8 @@ import { defaultDeviceLabel } from "@/features/auth/deviceLabel"
 import { scannerApi } from "@/features/scanner/scannerApi"
 import { parseApiError } from "@/shared/lib/parseApiError"
 
+import { clearAuthSession } from "./clearAuthSession"
 import {
-  clearAuth,
   setAssignments,
   setBootstrapLoading,
   setDeviceId,
@@ -42,6 +42,6 @@ export async function restoreScannerSession(dispatch: AppDispatch): Promise<void
   } catch (error) {
     const parsed = parseApiError(error)
     console.warn("[auth] Session restore failed:", parsed.message)
-    dispatch(clearAuth())
+    await clearAuthSession(dispatch)
   }
 }

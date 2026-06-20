@@ -6,8 +6,8 @@ import { parseApiError } from "@/shared/lib/parseApiError"
 import type { LoginResponse, LoginSuccess } from "@/shared/schemas/auth"
 import { isLoginSuccess } from "@/shared/schemas/authGuards"
 
+import { clearAuthSession } from "./clearAuthSession"
 import {
-  clearAuth,
   setAssignments,
   setBootstrapLoading,
   setCredentials,
@@ -55,7 +55,7 @@ export async function bootstrapScannerSession(
     return { ok: true }
   } catch (error) {
     const parsed = parseApiError(error)
-    dispatch(clearAuth())
+    await clearAuthSession(dispatch)
     return {
       ok: false,
       message: parsed.message,

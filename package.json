@@ -8,9 +8,24 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "cap:sync": "cap sync android",
+    "build:android": "npm run build && cap sync android",
+    "open:android": "cap open android",
+    "assets:generate": "capacitor-assets generate --android",
+    "apk:release": "bash scripts/build-release-apk.sh"
   },
   "dependencies": {
+    "@aparajita/capacitor-biometric-auth": "^10.0.0",
+    "@capacitor-community/keep-awake": "^8.0.1",
+    "@capacitor-mlkit/barcode-scanning": "^8.1.0",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/local-notifications": "^8.2.0",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@fontsource/noto-sans-arabic": "^5.2.10",
     "@fontsource/plus-jakarta-sans": "^5.2.5",
     "@fontsource/space-grotesk": "^5.2.5",
@@ -22,6 +37,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@reduxjs/toolkit": "^2.12.0",
     "@tailwindcss/vite": "^4.2.1",
+    "capacitor-secure-storage-plugin": "^0.13.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "html5-qrcode": "^2.3.8",
@@ -42,6 +58,9 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.4.1",
     "@eslint/js": "^9.39.4",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",

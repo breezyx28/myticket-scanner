@@ -1,5 +1,7 @@
 import { Camera, CameraOff } from "lucide-react"
-import { useCallback, useRef, useState } from "react"
+import { KeepAwake } from "@capacitor-community/keep-awake"
+import { App as CapacitorApp } from "@capacitor/app"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
@@ -23,6 +25,9 @@ import { mapScanLogToResult } from "@/features/scan/mapScanResult"
 import { parseTicketCode } from "@/features/scan/parseTicketCode"
 import type { ScanResultDetail } from "@/features/scan/types"
 import { ScannerLayout } from "@/layouts/ScannerLayout"
+import { isNativePlatform } from "@/platform/detect"
+import { registerNativeBackHandler } from "@/platform/nativeBootstrap"
+import { showForegroundScanNotification } from "@/platform/notifications"
 import { parseApiError } from "@/shared/lib/parseApiError"
 import { cn } from "@/lib/utils"
 
@@ -38,16 +43,38 @@ export function ScannerPage() {
   const [camError, setCamError] = useState<string | null>(null)
   const [cameraOn, setCameraOn] = useState(true)
 
+  const scanSessionLocked = useRef(false)
+  const scannerPaused = loading || Boolean(result)
+  const viewfinderActive = cameraOn && !camError
+
   const { connectionState } = useScannerScanRealtime({
     onRemoteScan: (row) => {
-      toast.message(formatRemoteScanToast(row, t), { duration: 4500 })
+      const message = formatRemoteScanToast(row, t)
+      toast.message(message, { duration: 4500 })
+      void showForegroundScanNotification(t("common.appName"), message)
     },
   })
 
-  const scanSessionLocked = useRef(false)
+  useEffect(() => {
+    if (!isNativePlatform()) return
+    return registerNativeBackHandler(() => {
+      void CapacitorApp.minimizeApp()
+    })
+  }, [])
 
-  const scannerPaused = loading || Boolean(result)
-  const viewfinderActive = cameraOn && !camError
+  useEffect(() => {
+    if (!isNativePlatform()) return
+    void (async () => {
+      if (viewfinderActive && !scannerPaused) {
+        await KeepAwake.keepAwake()
+      } else {
+        await KeepAwake.allowSleep()
+      }
+    })()
+    return () => {
+      void KeepAwake.allowSleep()
+    }
+  }, [scannerPaused, viewfinderActive])
 
   const handlePayload = useCallback(
     async (raw: string) => {
@@ -189,7 +216,12 @@ export function ScannerPage() {
           </div>
         )}
 
-        <div className="relative min-h-0 flex-1 overflow-hidden bg-black">
+        <div
+          className={cn(
+            "relative min-h-0 flex-1 overflow-hidden",
+            isNativePlatform() && viewfinderActive ? "bg-transparent" : "bg-black",
+          )}
+        >
           {viewfinderActive ? (
             <div className="absolute inset-0 min-h-0">
               <ScannerViewfinder

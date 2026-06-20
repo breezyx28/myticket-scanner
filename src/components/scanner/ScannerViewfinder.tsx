@@ -2,6 +2,13 @@ import { Html5Qrcode } from "html5-qrcode"
 import { useCallback, useEffect, useId, useRef } from "react"
 import { useTranslation } from "react-i18next"
 
+import {
+  disposeNativeScan,
+  startNativeScan,
+  stopNativeScan,
+} from "@/platform/camera/nativeScan"
+import { isNativePlatform } from "@/platform/detect"
+
 interface ScannerViewfinderProps {
   active: boolean
   paused: boolean
@@ -78,6 +85,20 @@ export function ScannerViewfinder({
   }, [])
 
   useEffect(() => {
+    if (isNativePlatform()) {
+      void startNativeScan({
+        active,
+        paused,
+        onDecoded,
+        onCameraError,
+        deniedMessage: t("scanner.camera.denied"),
+        startFailedMessage: t("scanner.camera.startFailed"),
+      })
+      return () => {
+        void stopNativeScan()
+      }
+    }
+
     let cancelled = false
 
     const start = async () => {
@@ -116,13 +137,31 @@ export function ScannerViewfinder({
       cancelled = true
       void cleanup()
     }
-  }, [active, cleanup, paused, regionId, t])
+  }, [active, cleanup, onCameraError, onDecoded, paused, regionId, t])
+
+  useEffect(() => {
+    return () => {
+      if (isNativePlatform()) {
+        void disposeNativeScan()
+      }
+    }
+  }, [])
 
   return (
-    <div className="relative h-full min-h-0 w-full bg-black">
+    <div
+      className={
+        isNativePlatform()
+          ? "barcode-scanner-viewfinder relative h-full min-h-0 w-full bg-transparent"
+          : "relative h-full min-h-0 w-full bg-black"
+      }
+    >
       <div
         id={regionId}
-        className="absolute inset-0 overflow-hidden [&_video]:h-full [&_video]:w-full [&_video]:object-cover"
+        className={
+          isNativePlatform()
+            ? "absolute inset-0 bg-transparent"
+            : "absolute inset-0 overflow-hidden [&_video]:h-full [&_video]:w-full [&_video]:object-cover"
+        }
         aria-label={t("scanner.camera.viewfinderAria")}
       />
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-3 sm:p-6 md:p-10">

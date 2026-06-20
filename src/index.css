@@ -83,6 +83,22 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+  }
+  html {
+    height: -webkit-fill-available;
+  }
+  #root {
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+  }
+
+  /* ML Kit renders the camera behind the WebView — keep scan region transparent */
+  html.barcode-scanner-active,
+  html.barcode-scanner-active body,
+  html.barcode-scanner-active #root {
+    background: transparent !important;
   }
   html[dir="rtl"] body {
     font-family: "Noto Sans Arabic", var(--font-sans), system-ui, sans-serif;
