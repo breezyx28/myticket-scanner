@@ -13,7 +13,11 @@
     "build:android": "npm run build && cap sync android",
     "open:android": "cap open android",
     "assets:generate": "capacitor-assets generate --android",
-    "apk:release": "bash scripts/build-release-apk.sh"
+    "apk:release": "bash scripts/build-release-apk.sh",
+    "test:integration": "vitest run --config vitest.config.ts",
+    "test:e2e": "playwright test",
+    "test:api": "npm run test:integration && npm run test:e2e",
+    "test:api:report": "npm run test:api"
   },
   "dependencies": {
     "@aparajita/capacitor-biometric-auth": "^10.0.0",
@@ -62,16 +66,19 @@
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.4.1",
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.61.0",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.2.0",
+    "dotenv": "^17.4.2",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^16.5.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.57.1",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^4.1.9"
   }
 }

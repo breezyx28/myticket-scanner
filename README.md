@@ -76,6 +76,34 @@ Scans from other devices on the same account show as a toast; the header shows *
 - `npm run build:android` — Web build + `cap sync android`
 - `npm run open:android` — Open Android Studio
 - `npm run apk:release` — Build signed release APK + `releases/manifest.json` (requires keystore)
+- `npm run test:integration` — Vitest integration tests against live API
+- `npm run test:e2e` — Playwright browser tests (build + preview server)
+- `npm run test:api` — Run integration then E2E; failures logged to `docs/api-test-errors.md`
+
+## API integration & E2E tests
+
+Integration tests call the live Scanner API directly (Node `fetch` + Zod schemas from `src/`). E2E tests drive the built app in Chromium against the same API.
+
+1. Copy `.env.test.example` → `.env.test` and fill credentials:
+
+   ```bash
+   cp .env.test.example .env.test
+   ```
+
+   Required: `VITE_API_BASE_URL`, `TEST_SCANNER_EMAIL`, `TEST_SCANNER_PASSWORD`.  
+   Optional: `TEST_TICKET_CODE` (enables a positive scan test), `TEST_EVENT_ID`, `TEST_ACCEPT_LANGUAGE` (`en` | `ar`).
+
+2. Run tests:
+
+   ```bash
+   npm run test:integration   # API only
+   npm run test:e2e           # browser flows (installs browsers on first run: npx playwright install chromium)
+   npm run test:api           # both suites
+   ```
+
+3. After failures, review `docs/api-test-errors.md` (see `docs/api-test-errors.example.md` for format).
+
+**Notes:** Device registration and optional ticket scans mutate live state. Login uses a shared session per suite to reduce rate limits. Accounts with 2FA will fail login unless OTP support is added later.
 
 ## Web vs Android
 
